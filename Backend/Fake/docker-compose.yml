@@ -1,0 +1,7 @@
+version: "3.8"
+
+services:
+  fake-backend:
+    build: .
+    ports:
+      - "443:5000"
