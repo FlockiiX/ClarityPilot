@@ -103,6 +103,7 @@ Use this if the task is new.
 ```json
 {
   "action": "newActivity",
+  "type": "<String | The platform the user has used for the activity - always lower case. E.g., 'github', 'slack'>",
   "punchline": "<String | A concise, punchy summary. E.g., 'Project: iOS Widget Improvements'>",
   "metadata": {
     "key": "<value | Extract relevant grouping tags, e.g., 'repo_name', 'slack_call_channel_name'>"
@@ -147,7 +148,7 @@ Input Data
                 {"_id": entry["_id"]},
                 {"$set": {"timestamp_end": str(current_ms)}},
             )
-    elif parsedRes["newActivity"] == "newActivity":
+    elif parsedRes["action"] == "newActivity":
         current_ms = int(time.time() * 1000)
 
         new_entry: TimelineEntry = {
