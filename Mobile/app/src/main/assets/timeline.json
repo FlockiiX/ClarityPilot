@@ -1,0 +1,30 @@
+{
+  "Today": [
+    {
+      "type": "github",
+      "icon?": "https://",
+      "label": "ClarityPilot: Frontend fixes",
+      "duration": "2h"
+    },
+    {
+      "type": "slack",
+      "icon?": "https://",
+      "label": "ClarityPilot: Frontend Brainstorming huddle" ,
+      "duration": "3h"
+    }
+  ],
+  "Yesterday":  [
+    {
+      "type": "github",
+      "icon?": "https://",
+      "label": "ClarityPilot: Frontend fixes",
+      "duration": "2h"
+    },
+    {
+      "type": "slack",
+      "icon?": "https://",
+      "label": "ClarityPilot: Frontend Brainstorming huddle",
+      "duration": "3h"
+    }
+  ]
+}
