@@ -4,6 +4,7 @@ from typing import List, Literal, Optional, Union, TypedDict
 from celery import Celery
 from celery.schedules import crontab
 
+import time
 import redis
 import json
 from google import genai
@@ -91,15 +92,15 @@ class Report(TypedDict):
 
 
 # ---- Code
-app = Celery(broker="amqp://user:passwordadhahsd7@34.32.62.187:5672//")
+# app = Celery(broker="amqp://user:passwordadhahsd7@34.32.62.187:5672//")
 
 
-@app.on_after_configure.connect
-def setup_periodic_tasks(sender: Celery, **kwargs):
-    sender.add_periodic_task(180.0, build_recommendations.s())
+# @app.on_after_configure.connect
+# def setup_periodic_tasks(sender: Celery, **kwargs):
+#    sender.add_periodic_task(180.0, build_recommendations.s())
 
 
-@app.task
+# @app.task
 def build_recommendations():
     print("[thinker] Got activation")
     activity = agentAnalyseActivity()
@@ -288,4 +289,11 @@ def agentGenerateUI(activity: Report):
 
 
 if __name__ == "__main__":
-    app.worker_main(["worker", "--beat", "--loglevel=info", "--concurrency=1"])
+    while True:
+        try:
+            build_recommendations()
+        except:
+            print("error running loop")
+
+        time.sleep(180)
+    # app.worker_main(["worker", "--beat", "--loglevel=info", "--concurrency=1"])
