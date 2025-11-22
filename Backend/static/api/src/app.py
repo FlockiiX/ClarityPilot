@@ -73,8 +73,8 @@ def github_auth_callback():
 
 @app.route("/gh/webhooks", methods=["POST"])
 def github_webhooks():
-    print(request)
-    print("asd")
+    app.logger.info(request)
+    app.logger.info("asd")
     # signature_header = request.headers.get("X-Hub-Signature-256")
     # if not signature_header:
     #     return "Forbidden", 403
@@ -89,13 +89,7 @@ def github_webhooks():
     event = request.headers.get("X-GitHub-Event")
     payload = request.json
 
-    print(f"Received GitHub webhook event: {event}")
+    app.logger.info(f"Received GitHub webhook event: {event}")
 
     # You can process the payload here
-    print(json.dumps(payload, indent=2))
-
-    return jsonify({"status": "ok"}), 200
-
-
-if __name__ == "__main__":
-    app.run(host="0.0.0.0", port=5000)
+    app.logger.info(payload)
