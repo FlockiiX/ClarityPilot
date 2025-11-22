@@ -21,3 +21,10 @@ services:
     ports:
       - "5672:5672"
       - "15672:15672"
+  redis:
+    image: redis:alpine
+    container_name: redis
+    restart: always
+    command: redis-server --requirepass yourpasd2ddsword
+    ports:
+      - "6379:6379"

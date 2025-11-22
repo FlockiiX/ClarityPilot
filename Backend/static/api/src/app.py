@@ -7,6 +7,7 @@ import hmac
 import hashlib
 import pika
 
+import redis
 import logging
 from datetime import datetime, timezone, timedelta
 
@@ -46,6 +47,12 @@ class TimelineEntry(TypedDict):
     metadata: TimelineMetadata
 
 
+# Redis setup
+redisClient = redis.Redis(
+    host="34.32.62.187", port=6379, db=0, password="yourpasd2ddsword"
+)
+
+
 # Mongo Setup
 mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
 db = mongoClient["clarity"]
@@ -53,7 +60,7 @@ collection = db["tracker"]
 
 
 app = Flask(__name__)
-app.logger.setLevel(logging.DEBUG)
+app.logger.setLevel(logging.WARNING)
 
 
 # Android timeline
@@ -120,38 +127,44 @@ def timeline_android():
 # Android widget
 @app.route("/user/1/widget/android", methods=["GET"])
 def widget_android():
-    return json.dumps(
-        {
-            "elements": [
-                {
-                    "type": "row",
-                    "columns": [
-                        {
-                            "type": "text",
-                            "content": "Never gonna give",
-                            "size": 14,
-                            "color": "#888888",
-                            "isBold": True,
-                        },
-                        {
-                            "type": "text",
-                            "content": "you",
-                            "size": 14,
-                            "color": "#888888",
-                            "isBold": True,
-                        },
-                        {
-                            "type": "text",
-                            "content": "LIVE",
-                            "size": 12,
-                            "color": "up",
-                            "align": "right",
-                        },
-                    ],
-                }
-            ],
-        }
-    )
+    redisContent = redisClient.get("widget")
+
+    if redisContent is not None:
+        return redisContent.decode("utf-8")
+    else:
+        app.logger.warning("Empty redis store")
+        return json.dumps(
+            {
+                "elements": [
+                    {
+                        "type": "row",
+                        "columns": [
+                            {
+                                "type": "text",
+                                "content": "Never gonna give",
+                                "size": 14,
+                                "color": "#888888",
+                                "isBold": True,
+                            },
+                            {
+                                "type": "text",
+                                "content": "you",
+                                "size": 14,
+                                "color": "#888888",
+                                "isBold": True,
+                            },
+                            {
+                                "type": "text",
+                                "content": "LIVE",
+                                "size": 12,
+                                "color": "up",
+                                "align": "right",
+                            },
+                        ],
+                    }
+                ],
+            }
+        )
 
 
 # Debugging
@@ -178,7 +191,7 @@ def github_webhooks():
     event = request.headers.get("X-GitHub-Event")
     payload = request.json
 
-    app.logger.info(f"Received GitHub webhook event: {event}")
+    app.logger.warning(f"Received GitHub webhook event: {event}")
 
     # Dump payload into rabitmq
     connection = pika.BlockingConnection(

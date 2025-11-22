@@ -44,11 +44,8 @@ class RabbitMessage(TypedDict):
 
 
 def callback(ch, method, properties, body):
-    print("Received:", body.decode())
-
     parsedBody: RabbitMessage = json.loads(body.decode())
     del parsedBody["raw_payload"]
-    print(parsedBody)
 
     query = {"type": parsedBody["provider"]}
     results: List[TimelineEntry] = (
@@ -59,8 +56,8 @@ def callback(ch, method, properties, body):
     relevantTasks = []
 
     thirty_minutes_ago = int(time.time() * 1000) - (
-        30 * 60 * 1000
-    )  # Current time in ms - 30 minutes in ms
+        60 * 60 * 1000 * 6
+    )  # Current time in ms - 6 hours in ms
 
     for result in results:
         if (
@@ -129,10 +126,10 @@ Input Data
         model="gemini-3-pro-preview", contents=contents
     )
     res = response.text
-    print(res)
     parsedRes = json.loads(res)
 
     if parsedRes["action"] == "continuing":
+        print(f"[runner] Decided {parsedBody['provider']} is a continuation")
         # Get the last entry for the given type (provider) for this user
         query = {
             "type": parsedBody["provider"],
@@ -149,6 +146,7 @@ Input Data
                 {"$set": {"timestamp_end": str(current_ms)}},
             )
     elif parsedRes["action"] == "newActivity":
+        print(f"[runner] Decided {parsedBody['provider']} is a new activity")
         current_ms = int(time.time() * 1000)
 
         new_entry: TimelineEntry = {
@@ -177,6 +175,13 @@ Input Data
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
+# Setup mongo
+mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
+db = mongoClient["clarity"]
+collection = db["tracker"]
+
+
+# Setup rabbit
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(
         host="34.32.62.187",
@@ -185,14 +190,6 @@ connection = pika.BlockingConnection(
     )
 )
 
-
-# Setup mongo
-mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
-db = mongoClient["clarity"]
-collection = db["tracker"]
-
-
-# Setup rabbit
 channel = connection.channel()
 
 channel.queue_declare(queue="task_queue", durable=True)
