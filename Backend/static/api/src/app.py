@@ -41,7 +41,14 @@ def widget_android():
                     "columns": [
                         {
                             "type": "text",
-                            "content": "DASHBOARD",
+                            "content": "Never gonna give",
+                            "size": 14,
+                            "color": "#888888",
+                            "isBold": True,
+                        },
+                        {
+                            "type": "text",
+                            "content": "you",
                             "size": 14,
                             "color": "#888888",
                             "isBold": True,
@@ -50,7 +57,7 @@ def widget_android():
                             "type": "text",
                             "content": "LIVE",
                             "size": 12,
-                            "color": "#00FF00",
+                            "color": "up",
                             "align": "right",
                         },
                     ],
