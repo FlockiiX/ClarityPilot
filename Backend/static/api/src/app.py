@@ -14,16 +14,6 @@ import github_parser
 # Rabbit MQ
 import pika
 
-connection = pika.BlockingConnection(
-    pika.ConnectionParameters(
-        host="34.32.62.187",
-        port=5672,
-        credentials=pika.credentials.PlainCredentials("user", "passwordadhahsd7"),
-    )
-)
-channel = connection.channel()
-channel.queue_declare(queue="task_queue", durable=True)
-
 
 import logging
 
@@ -92,12 +82,25 @@ def github_webhooks():
     app.logger.info(f"Received GitHub webhook event: {event}")
 
     # Dump payload into rabitmq
+    connection = pika.BlockingConnection(
+        pika.ConnectionParameters(
+            host="34.32.62.187",
+            port=5672,
+            credentials=pika.credentials.PlainCredentials("user", "passwordadhahsd7"),
+        )
+    )
+
+    channel = connection.channel()
+    channel.queue_declare(queue="task_queue", durable=True)
+
     channel.basic_publish(
         exchange="",
         routing_key="task_queue",
         body=json.dumps(github_parser.convert_github_payload(payload)).encode("utf-8"),
         properties=pika.BasicProperties(delivery_mode=1),
     )
+
+    connection.close()
 
     app.logger.debug(f"Pushed into rabbit")
 
