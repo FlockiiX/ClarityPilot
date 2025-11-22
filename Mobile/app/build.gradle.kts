@@ -2,6 +2,7 @@ plugins {
     alias(libs.plugins.android.application)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
     id("org.jetbrains.kotlin.plugin.serialization")
 }
 
@@ -54,6 +55,7 @@ dependencies {
     implementation(libs.androidx.glance.appwidget)
     implementation(libs.androidx.glance.material3)
     implementation(libs.androidx.work.runtime.ktx)
+    implementation(libs.kotlinx.serialization.json)
 
     // nel0x: Material Components for inner app layout
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.2")
