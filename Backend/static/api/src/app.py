@@ -28,6 +28,8 @@ MAPPED_NAMES = {
     "jira": "Jira",
 }
 
+ICON_SIZES = {"slack": 26, "teams": 26, "jira": 26}
+
 
 class TimelineMetadata(TypedDict):
     subtask: str
@@ -106,6 +108,9 @@ def timeline_android():
             "label": e.get("punchline", ""),
             "duration": format_duration(ts_start, ts_end),
         }
+
+        if ICON_SIZES.get(e.get("type", "")) != None:
+            item["iconSize"] = ICON_SIZES[e.get("type", "")]
 
         grouped.setdefault(label, []).append(item)
 
