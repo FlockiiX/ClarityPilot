@@ -157,7 +157,7 @@ class MainActivity : ComponentActivity() {
         // (Ersetzt setContentView(R.layout.widget_initial_layout))
         setContent {
             MaterialTheme(
-                colorScheme = myAppColorScheme
+              //  colorScheme = myAppColorScheme
             ) {
                 MainTabScreen()
             }
@@ -376,7 +376,7 @@ fun TimelineDateHeader(day: String) {
             Text(
                 text = day.uppercase(),
                 style = MaterialTheme.typography.labelMedium,
-                color = Color.Black,
+                color = MaterialTheme.colorScheme.onPrimaryContainer,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
             )
@@ -545,7 +545,7 @@ fun SettingsScreen() {
     var showWeightPicker by remember { mutableStateOf(false) }
     var showHeightPicker by remember { mutableStateOf(false) }
 
-    val dateFormatter = remember { SimpleDateFormat("MM-dd-yyyy", Locale.US) }
+    val dateFormatter = remember { SimpleDateFormat("yyyy-MM-dd", Locale.US) }
     val birthDateString = if (birthDateMillis != null) dateFormatter.format(Date(birthDateMillis!!)) else ""
 
 
