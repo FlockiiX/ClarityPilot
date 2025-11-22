@@ -50,7 +50,7 @@ def callback(ch, method, properties, body):
     del parsedBody["raw_payload"]
     print(parsedBody)
 
-    query = {"type": RabbitMessage["provider"]}
+    query = {"type": parsedBody["provider"]}
     results: List[TimelineEntry] = (
         collection.find(query).sort("_id", DESCENDING).limit(5).to_list()
     )
