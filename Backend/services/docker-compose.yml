@@ -12,3 +12,12 @@ services:
       - ./db:/data/db
     ports:
       - "27017:27017"
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: passwordadhahsd7
+    ports:
+      - "5672:5672"
+      - "15672:15672"
