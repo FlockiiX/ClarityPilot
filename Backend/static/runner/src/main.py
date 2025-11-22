@@ -59,8 +59,8 @@ def callback(ch, method, properties, body):
     relevantTasks = []
 
     thirty_minutes_ago = int(time.time() * 1000) - (
-        60 * 60 * 1000
-    )  # Current time in ms - 30 minutes in ms
+        60 * 60 * 1000 * 6
+    )  # Current time in ms - 6 hours in ms
 
     for result in results:
         if (
@@ -129,10 +129,12 @@ Input Data
         model="gemini-3-pro-preview", contents=contents
     )
     res = response.text
-    print(res)
     parsedRes = json.loads(res)
 
     if parsedRes["action"] == "continuing":
+        print(
+            f"[runner] Decided {parsedBody['provider']} {parsedBody['raw_payload']} is a continuation"
+        )
         # Get the last entry for the given type (provider) for this user
         query = {
             "type": parsedBody["provider"],
@@ -149,6 +151,9 @@ Input Data
                 {"$set": {"timestamp_end": str(current_ms)}},
             )
     elif parsedRes["action"] == "newActivity":
+        print(
+            f"[runner] Decided {parsedBody['provider']} {parsedBody['raw_payload']} is a new activity"
+        )
         current_ms = int(time.time() * 1000)
 
         new_entry: TimelineEntry = {

@@ -60,7 +60,7 @@ collection = db["tracker"]
 
 
 app = Flask(__name__)
-app.logger.setLevel(logging.DEBUG)
+app.logger.setLevel(logging.WARNING)
 
 
 # Android timeline
@@ -129,9 +129,10 @@ def timeline_android():
 def widget_android():
     redisContent = redisClient.get("widget")
 
-    if redisContent != None:
-        return json.dumps(redisContent)
+    if redisContent is not None:
+        return redisContent.decode("utf-8")
     else:
+        app.logger.warning("Empty redis store")
         return json.dumps(
             {
                 "elements": [
@@ -190,7 +191,7 @@ def github_webhooks():
     event = request.headers.get("X-GitHub-Event")
     payload = request.json
 
-    app.logger.info(f"Received GitHub webhook event: {event}")
+    app.logger.warning(f"Received GitHub webhook event: {event}")
 
     # Dump payload into rabitmq
     connection = pika.BlockingConnection(

@@ -101,8 +101,13 @@ def setup_periodic_tasks(sender: Celery, **kwargs):
 
 @app.task
 def build_recommendations():
+    print("[thinker] Got activation")
     activity = agentAnalyseActivity()
+    print(
+        f"[thinker] Condensed activity down to {activity['conclusion']} with recommendation {activity.get('mapsCallToActionLocation', "None")}"
+    )
     widget = agentGenerateUI(activity)
+    print("[thinker] Generated UI")
 
     # Store widget in Redis
     redisClient.set("widget", json.dumps(widget))
