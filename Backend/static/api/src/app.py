@@ -1,26 +1,107 @@
-import json.scanner
-from flask import Flask, redirect, request, jsonify
-import os
+from flask import Flask, request, jsonify
+from pymongo import MongoClient, DESCENDING
+from typing import TypedDict, List
+
 import json
-import requests
 import hmac
 import hashlib
-import glob
-import sys
+import pika
+
+import logging
+from datetime import datetime, timezone, timedelta
 
 import github_parser
 
+MAPPED_ICONS = {
+    "": "https://avatars.githubusercontent.com/u/109746326?s=48&v=4",
+    "github": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+}
 
-# Rabbit MQ
-import pika
+
+class TimelineMetadata(TypedDict):
+    subtask: str
+    project: str
+    other: str
 
 
-import logging
+class TimelineEntry(TypedDict):
+    _id: str
+    type: str
+    timestamp_start: str
+    timestamp_end: str
+    punchline: str
+    metadata: TimelineMetadata
+
+
+# Mongo Setup
+mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
+db = mongoClient["clarity"]
+collection = db["tracker"]
+
 
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
 
 
+# Android timeline
+@app.route("/user/1/timeline/android", methods=["GET"])
+def timeline_android():
+    # Get current time and 7 days ago in ms
+    now = datetime.now(timezone.utc)
+    seven_days_ago = now - timedelta(days=7)
+    seven_days_ago_ms = int(seven_days_ago.timestamp() * 1000)
+
+    # Query MongoDB for entries in the last 7 days, sorted by start timestamp desc
+    cursor = collection.find({"timestamp_start": {"$gte": seven_days_ago_ms}}).sort(
+        "timestamp_start", DESCENDING
+    )
+
+    entries: List[TimelineEntry] = list(cursor)  # type: ignore[assignment]
+
+    # Helper to convert ms -> date label
+    def day_label(ts_ms: int) -> str:
+        dt = datetime.fromtimestamp(ts_ms / 1000.0, tz=timezone.utc).astimezone()
+        today = now.astimezone().date()
+        entry_day = dt.date()
+        if entry_day == today:
+            return "Today"
+        if entry_day == today - timedelta(days=1):
+            return "Yesterday"
+        return dt.strftime("%Y-%m-%d")
+
+    # Helper to format duration between start and end ms
+    def format_duration(start_ms: int, end_ms: int) -> str:
+        seconds = max(0, int((end_ms - start_ms) / 1000))
+        hours, rem = divmod(seconds, 3600)
+        minutes, _ = divmod(rem, 60)
+        if hours and minutes:
+            return f"{hours}h {minutes}m"
+        if hours:
+            return f"{hours}h"
+        if minutes:
+            return f"{minutes}m"
+        return "0m"
+
+    grouped: dict[str, list[dict]] = {}
+
+    for e in entries:
+        ts_start = int(e.get("timestamp_start", 0))
+        ts_end = int(e.get("timestamp_end", ts_start))
+        label = day_label(ts_start)
+
+        item = {
+            "type": e.get("type", ""),
+            "icon?": MAPPED_ICONS[e.get("type", "")],
+            "label": e.get("punchline", ""),
+            "duration": format_duration(ts_start, ts_end),
+        }
+
+        grouped.setdefault(label, []).append(item)
+
+    return jsonify(grouped)
+
+
+# Android widget
 @app.route("/user/1/widget/android", methods=["GET"])
 def widget_android():
     return json.dumps(
@@ -57,11 +138,13 @@ def widget_android():
     )
 
 
+# Debugging
 @app.route("/")
 def hello():
-    return "Hello from the Flask Fake Backend!"
+    return "online"
 
 
+# Input Handling
 @app.route("/gh/webhooks", methods=["POST"])
 def github_webhooks():
     signature_header = request.headers.get("X-Hub-Signature-256")
@@ -109,4 +192,3 @@ def github_webhooks():
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
-    connection.close()
