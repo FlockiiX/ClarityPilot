@@ -1,0 +1,23 @@
+version: "3.1"
+
+services:
+  mongo:
+    image: mongo:4.4.18
+    container_name: mongo
+    restart: always
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: root
+      MONGO_INITDB_ROOT_PASSWORD: jsdusdbabsduroo4t
+    volumes:
+      - ./db:/data/db
+    ports:
+      - "27017:27017"
+  rabbitmq:
+    image: rabbitmq:4-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: user
+      RABBITMQ_DEFAULT_PASS: passwordadhahsd7
+    ports:
+      - "5672:5672"
+      - "15672:15672"
