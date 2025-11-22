@@ -1,3 +1,4 @@
+import json.scanner
 from flask import Flask, redirect, request, jsonify
 import os
 import json
@@ -7,10 +8,50 @@ import hashlib
 import glob
 import sys
 
+import github_parser
+
+
+# Rabbit MQ
+import pika
+
+connection = pika.BlockingConnection(pika.ConnectionParameters("34.32.62.187:5672"))
+channel = connection.channel()
+channel.queue_declare(queue="task_queue", durable=True)
+
+
 import logging
 
 app = Flask(__name__)
 app.logger.setLevel(logging.DEBUG)
+
+
+@app.route("/user/1/widget/android", methods=["GET"])
+def widget_android():
+    return json.dumps(
+        {
+            "elements": [
+                {
+                    "type": "row",
+                    "columns": [
+                        {
+                            "type": "text",
+                            "content": "DASHBOARD",
+                            "size": 14,
+                            "color": "#888888",
+                            "isBold": True,
+                        },
+                        {
+                            "type": "text",
+                            "content": "LIVE",
+                            "size": 12,
+                            "color": "#00FF00",
+                            "align": "right",
+                        },
+                    ],
+                }
+            ],
+        }
+    )
 
 
 @app.route("/")
@@ -34,13 +75,21 @@ def github_webhooks():
     event = request.headers.get("X-GitHub-Event")
     payload = request.json
 
-    app.logger.error(f"Received GitHub webhook event: {event}")
+    app.logger.info(f"Received GitHub webhook event: {event}")
 
-    # You can process the payload here
-    app.logger.info(payload)
+    # Dump payload into rabitmq
+    channel.basic_publish(
+        exchange="",
+        routing_key="task_queue",
+        body=github_parser.convert_github_payload(payload),
+        properties=pika.BasicProperties(delivery_mode=1),
+    )
+
+    app.logger.debug(f"Pushed into rabbit")
 
     return jsonify({"status": "ok"}), 200
 
 
 if __name__ == "__main__":
     app.run(host="0.0.0.0", port=5000)
+    connection.close()
