@@ -102,7 +102,7 @@ def timeline_android():
 
         item = {
             "type": MAPPED_NAMES[e.get("type", "")],
-            "icon?": MAPPED_ICONS[e.get("type", "")],
+            "icon": MAPPED_ICONS[e.get("type", "")],
             "label": e.get("punchline", ""),
             "duration": format_duration(ts_start, ts_end),
         }
