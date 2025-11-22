@@ -295,5 +295,5 @@ if __name__ == "__main__":
         except:
             print("error running loop")
 
-        time.sleep(180)
+        time.sleep(60)
     # app.worker_main(["worker", "--beat", "--loglevel=info", "--concurrency=1"])
