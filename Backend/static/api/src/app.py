@@ -14,7 +14,18 @@ import github_parser
 
 MAPPED_ICONS = {
     "": "https://avatars.githubusercontent.com/u/109746326?s=48&v=4",
-    "github": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+    "github": "https://cdn-icons-png.flaticon.com/512/3291/3291695.png",
+    "slack": "https://cdn-icons-png.flaticon.com/512/3800/3800024.png",
+    "teams": "https://cdn-icons-png.flaticon.com/512/15047/15047490.png",
+    "jira": "https://cdn-icons-png.flaticon.com/512/5968/5968875.png",
+}
+
+MAPPED_NAMES = {
+    "": "",
+    "github": "GitHub",
+    "slack": "Slack",
+    "teams": "Teams",
+    "jira": "Jira",
 }
 
 
