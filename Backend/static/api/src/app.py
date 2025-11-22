@@ -21,7 +21,9 @@ if not pem_files:
 with open(pem_files[0], "r") as f:
     private_key = f.read()
 
-GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", private_key)
+GITHUB_CLIENT_SECRET = os.environ.get(
+    "GITHUB_CLIENT_SECRET", "8ee094890aa3ad8dd3a9781c808816628d575397"
+)
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "test")
 
 TOKEN_FILE = "/persistent/github_token.json"
