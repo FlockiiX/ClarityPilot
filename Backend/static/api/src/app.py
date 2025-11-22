@@ -76,6 +76,7 @@ def github_webhooks():
     mac = hmac.new("test".encode(), msg=request.data, digestmod=hashlib.sha256)
 
     if not hmac.compare_digest(mac.hexdigest(), signature):
+
         return "Forbiddden", 403
 
     event = request.headers.get("X-GitHub-Event")
