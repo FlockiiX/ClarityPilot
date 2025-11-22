@@ -75,16 +75,16 @@ def github_auth_callback():
 def github_webhooks():
     print(request)
     print("asd")
-    signature_header = request.headers.get("X-Hub-Signature-256")
-    if not signature_header:
-        return "Forbidden", 403
+    # signature_header = request.headers.get("X-Hub-Signature-256")
+    # if not signature_header:
+    #     return "Forbidden", 403
 
-    signature = signature_header.split("=")[1]
+    # signature = signature_header.split("=")[1]
 
-    mac = hmac.new(WEBHOOK_SECRET.encode(), msg=request.data, digestmod=hashlib.sha256)
+    # mac = hmac.new(WEBHOOK_SECRET.encode(), msg=request.data, digestmod=hashlib.sha256)
 
-    if not hmac.compare_digest(mac.hexdigest(), signature):
-        return "Forbidden", 403
+    # if not hmac.compare_digest(mac.hexdigest(), signature):
+    #     return "Forbidden", 403
 
     event = request.headers.get("X-GitHub-Event")
     payload = request.json
