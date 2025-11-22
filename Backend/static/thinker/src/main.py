@@ -188,7 +188,7 @@ You must respond exclusively with a single valid JSON object. DO NOT include mar
     "recommendation": "The specific activity suggestion or validation message.",
     "workSummary": "Super short sentence about how much time the user has bend on which platform",
     "mapsCallToAction": boolean // Set to true ONLY if the recommendation is a specific physical location navigable via Google Maps which you also found using the google maps tool.
-    "mapsCallToActionLocation": string // A search term google maps can use to find the recommended location, for example: "google.navigation:q=Englischer+Garten+Munich"
+    "mapsCallToActionLocation": string // A search term google maps can use to find the recommended location, for example: "geo:0,0?q=Englischer+Garten+Munich" - Keep "geo:0,0?q=" and change the rest
 }
 
 # Example Response (for reference only)
