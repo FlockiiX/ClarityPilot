@@ -14,8 +14,21 @@ import github_parser
 
 MAPPED_ICONS = {
     "": "https://avatars.githubusercontent.com/u/109746326?s=48&v=4",
-    "github": "https://github.githubassets.com/assets/GitHub-Mark-ea2971cee799.png",
+    "github": "https://cdn-icons-png.flaticon.com/512/3291/3291695.png",
+    "slack": "https://cdn-icons-png.flaticon.com/512/3800/3800024.png",
+    "teams": "https://cdn-icons-png.flaticon.com/512/15047/15047490.png",
+    "jira": "https://cdn-icons-png.flaticon.com/512/5968/5968875.png",
 }
+
+MAPPED_NAMES = {
+    "": "",
+    "github": "GitHub",
+    "slack": "Slack",
+    "teams": "Teams",
+    "jira": "Jira",
+}
+
+ICON_SIZES = {"slack": 26, "teams": 26, "jira": 26}
 
 
 class TimelineMetadata(TypedDict):
@@ -90,11 +103,14 @@ def timeline_android():
         label = day_label(ts_start)
 
         item = {
-            "type": e.get("type", ""),
-            "icon?": MAPPED_ICONS[e.get("type", "")],
+            "type": MAPPED_NAMES[e.get("type", "")],
+            "icon": MAPPED_ICONS[e.get("type", "")],
             "label": e.get("punchline", ""),
             "duration": format_duration(ts_start, ts_end),
         }
+
+        if ICON_SIZES.get(e.get("type", "")) != None:
+            item["iconSize"] = ICON_SIZES[e.get("type", "")]
 
         grouped.setdefault(label, []).append(item)
 
