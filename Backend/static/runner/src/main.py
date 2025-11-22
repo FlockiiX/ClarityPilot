@@ -154,8 +154,8 @@ Input Data
         new_entry: TimelineEntry = {
             "_id": str(current_ms),
             "type": parsedBody["provider"],
-            "timestamp_start": str(current_ms - 1000 * 60 * 10),
-            "timestamp_end": str(current_ms),
+            "timestamp_start": current_ms - 1000 * 60 * 10,
+            "timestamp_end": current_ms,
             "punchline": parsedRes.get("punchline", ""),
             "metadata": {
                 "subtask": (
@@ -197,7 +197,7 @@ channel = connection.channel()
 
 channel.queue_declare(queue="task_queue", durable=True)
 
-channel.basic_qos(prefetch_count=5)
+channel.basic_qos(prefetch_count=1)
 channel.basic_consume(queue="task_queue", on_message_callback=callback)
 
 print("Waiting for messages...")
