@@ -45,6 +45,7 @@ class RabbitMessage(TypedDict):
 
 def callback(ch, method, properties, body):
     print("Received:", body.decode())
+
     parsedBody: RabbitMessage = json.loads(body.decode())
     del parsedBody["raw_payload"]
     print(parsedBody)
