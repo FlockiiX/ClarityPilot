@@ -4,6 +4,7 @@ from typing import List, Literal, Optional, Union, TypedDict
 from celery import Celery
 from celery.schedules import crontab
 
+import time
 import redis
 import json
 from google import genai
@@ -91,15 +92,15 @@ class Report(TypedDict):
 
 
 # ---- Code
-app = Celery(broker="amqp://user:passwordadhahsd7@34.32.62.187:5672//")
+# app = Celery(broker="amqp://user:passwordadhahsd7@34.32.62.187:5672//")
 
 
-@app.on_after_configure.connect
-def setup_periodic_tasks(sender: Celery, **kwargs):
-    sender.add_periodic_task(180.0, build_recommendations.s())
+# @app.on_after_configure.connect
+# def setup_periodic_tasks(sender: Celery, **kwargs):
+#    sender.add_periodic_task(180.0, build_recommendations.s())
 
 
-@app.task
+# @app.task
 def build_recommendations():
     print("[thinker] Got activation")
     activity = agentAnalyseActivity()
@@ -188,7 +189,7 @@ You must respond exclusively with a single valid JSON object. DO NOT include mar
     "recommendation": "The specific activity suggestion or validation message.",
     "workSummary": "Super short sentence about how much time the user has bend on which platform",
     "mapsCallToAction": boolean // Set to true ONLY if the recommendation is a specific physical location navigable via Google Maps which you also found using the google maps tool.
-    "mapsCallToActionLocation": string // A search term google maps can use to find the recommended location, for example: "google.navigation:q=Englischer+Garten+Munich"
+    "mapsCallToActionLocation": string // A search term google maps can use to find the recommended location, for example: "geo:0,0?q=Englischer+Garten+Munich" - Keep "geo:0,0?q=" and change the rest
 }
 
 # Example Response (for reference only)
@@ -288,4 +289,11 @@ def agentGenerateUI(activity: Report):
 
 
 if __name__ == "__main__":
-    app.worker_main(["worker", "--beat", "--loglevel=info", "--concurrency=1"])
+    while True:
+        try:
+            build_recommendations()
+        except:
+            print("error running loop")
+
+        time.sleep(60)
+    # app.worker_main(["worker", "--beat", "--loglevel=info", "--concurrency=1"])
