@@ -75,7 +75,7 @@ def github_auth_callback():
 def github_webhooks():
     app.logger.error("asd")
     app.logger.info(request)
-    # signature_header = request.headers.get("X-Hub-Signature-256")
+    # signaturedd_header = request.headers.get("X-Hub-Signature-256")
     # if not signature_header:
     #     return "Forbidden", 403
     # ds
