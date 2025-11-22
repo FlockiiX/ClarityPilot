@@ -96,7 +96,7 @@ app = Celery(broker="amqp://user:passwordadhahsd7@34.32.62.187:5672//")
 
 @app.on_after_configure.connect
 def setup_periodic_tasks(sender: Celery, **kwargs):
-    sender.add_periodic_task(60.0, build_recommendations.s())
+    sender.add_periodic_task(180.0, build_recommendations.s())
 
 
 @app.task
@@ -288,4 +288,4 @@ def agentGenerateUI(activity: Report):
 
 
 if __name__ == "__main__":
-    app.worker_main(["worker", "--beat", "--loglevel=info"])
+    app.worker_main(["worker", "--beat", "--loglevel=info", "--concurrency=1"])
