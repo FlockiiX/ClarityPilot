@@ -87,7 +87,7 @@ def github_webhooks():
     channel.basic_publish(
         exchange="",
         routing_key="task_queue",
-        body=json.dumps(github_parser.convert_github_payload(payload).encode('utf-8'),
+        body=json.dumps(github_parser.convert_github_payload(payload)).encode("utf-8"),
         properties=pika.BasicProperties(delivery_mode=1),
     )
 
