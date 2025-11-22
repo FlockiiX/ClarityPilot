@@ -531,7 +531,8 @@ fun SettingsScreen() {
     val accounts = remember {
         mutableStateListOf(
             AccountOption("github", "GitHub", R.drawable.github, Color(0xFF333333), prefs.getBoolean("account_github", true)),
-            AccountOption("google", "Google", R.drawable.google, Color(0xFFDB4437), prefs.getBoolean("account_google", false)),
+            AccountOption("teams", "Microsoft Teams", R.drawable.teams, Color(0xFFDB4437), prefs.getBoolean("account_teams", false)),
+            AccountOption("jira", "Jira", R.drawable.jira, Color(0xFFDB4437), prefs.getBoolean("account_jira", false)),
             AccountOption("slack", "Slack", R.drawable.slack, Color(0xFF4A154B), prefs.getBoolean("account_slack", false))
         )
     }

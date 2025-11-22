@@ -18,42 +18,43 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 object WidgetRenderer {
-
-    // Rendert den Hauptinhalt (Ohne CTA Button)
-    suspend fun renderBody(context: Context, size: DpSize, elements: List<WidgetElement>): Bitmap {
+    suspend fun renderBody(
+        context: Context,
+        size: DpSize,
+        elements: List<WidgetElement>,
+        paddingBottomDp: Float = 0f
+    ): Bitmap {
         val density = context.resources.displayMetrics.density
         val widthPx = (size.width.value * density).toInt().coerceAtLeast(1)
         val heightPx = (size.height.value * density).toInt().coerceAtLeast(1)
+
+        val paddingBottomPx = paddingBottomDp * density
+        val usableHeightPx = (heightPx - paddingBottomPx).coerceAtLeast(1f)
 
         return withContext(Dispatchers.Default) {
             val bitmap = createBitmap(widthPx, heightPx)
             val canvas = Canvas(bitmap)
 
-            // 1. Background (Glassmorphism Scrim)
             bitmap.eraseColor(Color.TRANSPARENT)
             val scrimPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
-                color = Color.argb(120, 0, 0, 0)
+                color = Color.argb(140, 0, 0, 0)
                 style = Paint.Style.FILL
             }
             val bgRect = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
             val cornerRadius = 24f * density
             canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, scrimPaint)
 
-            // 2. Layout
             val padding = 16f * density
             val availableWidth = widthPx.toFloat() - (padding * 2)
 
-            // 3. Measure & Scale
-            // WICHTIG: Wir filtern CTAs hier raus, damit sie nicht im Body Platz wegnehmen
             val bodyElements = elements.filter { it !is WidgetElement.Cta }
             val totalContentHeight = measureTotalHeight(context, bodyElements, availableWidth, density)
 
-            // Scale logic
-            val scale = if (totalContentHeight > heightPx) heightPx.toFloat() / totalContentHeight else 1.0f
-            val scaledHeight = totalContentHeight * scale
-            val startY = if (scaledHeight < heightPx) (heightPx - scaledHeight) / 2f else 0f
+            val scale = if (totalContentHeight > usableHeightPx) usableHeightPx / totalContentHeight else 1.0f
 
-            // 4. Draw
+            val scaledHeight = totalContentHeight * scale
+            val startY = if (scaledHeight < usableHeightPx) (usableHeightPx - scaledHeight) / 2f else 0f
+
             canvas.withTranslation(padding, startY) {
                 scale(scale, scale)
                 var currentY = 0f
@@ -66,26 +67,23 @@ object WidgetRenderer {
         }
     }
 
-    // Rendert NUR den CTA Button als separate Bitmap
     suspend fun renderCtaButton(context: Context, widthDp: Float, text: String): Bitmap {
         val density = context.resources.displayMetrics.density
         val widthPx = (widthDp * density).toInt().coerceAtLeast(1)
-        val heightPx = (48 * density).toInt() // Feste Button Höhe 48dp
+        val heightPx = (48 * density).toInt()
 
         return withContext(Dispatchers.Default) {
             val bitmap = createBitmap(widthPx, heightPx)
             val canvas = Canvas(bitmap)
 
-            // Button Background (Akzentfarbe, z.B. Weiß oder Brand Color)
             val btnPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
                 style = Paint.Style.FILL
             }
             val rect = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
-            val radius = heightPx / 2f // Pill Shape
+            val radius = heightPx / 2f
             canvas.drawRoundRect(rect, radius, radius, btnPaint)
 
-            // Button Text "Let's Go"
             val textPaint = TextPaint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.BLACK
                 textSize = 16f * density
@@ -93,7 +91,6 @@ object WidgetRenderer {
                 textAlign = Paint.Align.CENTER
             }
 
-            // Text vertikal zentrieren
             val textBounds = Rect()
             textPaint.getTextBounds(text, 0, text.length, textBounds)
             val textY = (heightPx / 2f) - textBounds.exactCenterY()
@@ -104,7 +101,6 @@ object WidgetRenderer {
         }
     }
 
-    // --- Interne Helper ---
 
     private fun measureTotalHeight(ctx: Context, elements: List<WidgetElement>, w: Float, d: Float): Float {
         var h = 0f
@@ -122,10 +118,10 @@ object WidgetRenderer {
     ): Float {
         return when (el) {
             is WidgetElement.Text -> drawText(el, c, x, y, w, d, measureOnly)
-            is WidgetElement.Spacer -> 16 * d
+            is WidgetElement.Spacer -> 16f * d
             is WidgetElement.Card -> drawCard(ctx, c, el, x, y, w, d, measureOnly)
             is WidgetElement.Row -> drawRow(ctx, c, el, x, y, w, d, measureOnly)
-            is WidgetElement.Cta -> 0f // Sollte im Body nicht vorkommen, safety fallback
+            is WidgetElement.Cta -> 0f
         }
     }
 
@@ -234,6 +230,6 @@ object WidgetRenderer {
     }
 
     private fun parseColor(hex: String): Int {
-        return try { android.graphics.Color.parseColor(hex) } catch (e: Exception) { android.graphics.Color.LTGRAY }
+        return try { Color.parseColor(hex) } catch (_: Exception) { Color.LTGRAY }
     }
 }

@@ -12,7 +12,9 @@ import android.os.IBinder
 import android.util.Log
 import androidx.core.app.NotificationCompat
 import androidx.glance.appwidget.GlanceAppWidgetManager
+import androidx.glance.appwidget.state.getAppWidgetState
 import androidx.glance.appwidget.state.updateAppWidgetState
+import androidx.glance.state.PreferencesGlanceStateDefinition
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -41,7 +43,7 @@ class WidgetUpdateService : Service() {
 
     private fun startForegroundService() {
         val channelId = "widget_sync"
-        val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+        val manager = getSystemService(NOTIFICATION_SERVICE) as NotificationManager
         val channel = NotificationChannel(channelId, "Widget Sync", NotificationManager.IMPORTANCE_LOW)
         manager.createNotificationChannel(channel)
 
@@ -94,6 +96,10 @@ class WidgetUpdateService : Service() {
         val glanceIds = manager.getGlanceIds(CanvasWidget::class.java)
 
         glanceIds.forEach { glanceId ->
+            val prefs = getAppWidgetState(this, PreferencesGlanceStateDefinition, glanceId)
+            val currentData = prefs[CANVAS_DATA_KEY]
+            if(currentData == data) return@forEach
+
             updateAppWidgetState(this, glanceId) { prefs ->
                 prefs[CANVAS_DATA_KEY] = data
             }
