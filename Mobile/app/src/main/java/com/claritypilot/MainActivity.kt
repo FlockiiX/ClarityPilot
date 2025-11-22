@@ -2,6 +2,7 @@ package com.claritypilot
 
 
 import android.Manifest
+import android.annotation.SuppressLint
 import android.content.Context
 import android.content.pm.PackageManager
 import android.os.Bundle
@@ -515,6 +516,7 @@ data class AccountOption(
     val initialConnected: Boolean
 )
 
+@SuppressLint("DefaultLocale")
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
@@ -623,7 +625,7 @@ fun SettingsScreen() {
                         Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
                             Box(modifier = Modifier.weight(1f)) {
                                 ClickableTextField(
-                                    value = "$weight",
+                                    value = String.format("%.1f", weight),
                                     label = "Weight",
                                     suffix = "kg",
                                     onClick = { showWeightPicker = true },
