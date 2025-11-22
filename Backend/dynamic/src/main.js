@@ -8,7 +8,6 @@ import fs from "fs";
 import http from "http";
 
 // This reads your `.env` file and adds the variables from that file to the `process.env` object in Node.js.
-dotenv.config();
 
 // This assigns the values of your environment variables to local variables.
 const appId = 2333819;
