@@ -24,7 +24,7 @@ with open(pem_files[0], "r") as f:
 GITHUB_CLIENT_SECRET = os.environ.get("GITHUB_CLIENT_SECRET", private_key)
 WEBHOOK_SECRET = os.environ.get("WEBHOOK_SECRET", "test")
 
-TOKEN_FILE = "github_token.json"
+TOKEN_FILE = "/persistent/github_token.json"
 
 
 @app.route("/")
@@ -67,8 +67,9 @@ def github_auth_callback():
     return "Successfully authenticated and stored token."
 
 
-@app.route("/gh/webhooks/", methods=["POST"])
+@app.route("/gh/webhooks", methods=["POST"])
 def github_webhooks():
+    print(request)
     signature_header = request.headers.get("X-Hub-Signature-256")
     if not signature_header:
         return "Forbidden", 403

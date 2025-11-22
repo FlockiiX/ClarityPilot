@@ -1,7 +1,9 @@
 version: "3.8"
 
 services:
-  fake-backend:
+  static:
     build: .
+    volumes:
+      - ./persistent:/persistent
     ports:
       - "80:5000"
