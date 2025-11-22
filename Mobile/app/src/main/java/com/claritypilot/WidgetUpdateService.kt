@@ -1,4 +1,6 @@
 package com.claritypilot
+
+
 import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
@@ -21,6 +23,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class WidgetUpdateService : Service() {
+    private val API_URL = "https://clarity-pilot.com//user/1/widget/androsid"
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var isRunning = false
@@ -28,33 +31,23 @@ class WidgetUpdateService : Service() {
     override fun onBind(intent: Intent?): IBinder? = null
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
-        Log.d("WidgetUpdateService", "Service started")
         if (!isRunning) {
-            try {
-                startForegroundService()
-                startUpdateLoop()
-                isRunning = true
-            } catch (e: Exception) {
-                Log.e("WidgetUpdateService", "Failed to start foreground", e)
-                stopSelf()
-            }
+            startForegroundService()
+            startUpdateLoop()
+            isRunning = true
         }
         return START_STICKY
     }
 
     private fun startForegroundService() {
-        val channelId = "widget_updater_channel"
-        val channelName = "Widget Updates"
+        val channelId = "widget_sync"
         val manager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
-
-        val channel = NotificationChannel(channelId, channelName, NotificationManager.IMPORTANCE_LOW)
+        val channel = NotificationChannel(channelId, "Widget Sync", NotificationManager.IMPORTANCE_LOW)
         manager.createNotificationChannel(channel)
 
         val notification: Notification = NotificationCompat.Builder(this, channelId)
-            .setContentTitle("Clarity Pilot is here for you")
-            .setContentText("Keeping widget updated")
+            .setContentTitle("We are currently fine-tuning a new health tip for you.")
             .setSmallIcon(R.mipmap.ic_launcher)
-            .setOngoing(true)
             .build()
 
         startForeground(1, notification, ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC)
@@ -62,31 +55,34 @@ class WidgetUpdateService : Service() {
 
     private fun startUpdateLoop() {
         serviceScope.launch {
-            updateWidget("Loading...")
-
             while (true) {
                 try {
-                    Log.d("WidgetUpdateService", "Fetching data...")
-                    val newData = fetchFromApi()
-                    Log.d("WidgetUpdateService", "Data received: $newData")
-                    updateWidget(newData)
+                    Log.d("WidgetService", "Fetching data from $API_URL")
+                    val json = fetchFromApi(API_URL)
+                    Log.d("WidgetService", "Data received (Length: ${json.length})")
+                    updateWidget(json)
                 } catch (e: Exception) {
-                    Log.e("WidgetUpdateService", "Error fetching data", e)
-                    updateWidget("Err: ${e.javaClass.simpleName}")
+                    Log.e("WidgetService", "Fetch error", e)
+                    updateWidget("ERROR: ${e.localizedMessage}")
                 }
                 delay(15_000)
             }
         }
     }
 
-    private fun fetchFromApi(): String {
-        val url = URL("https://clarity-pilot.com")
+    private fun fetchFromApi(urlString: String): String {
+        val url = URL(urlString)
         val connection = url.openConnection() as HttpURLConnection
         return try {
             connection.requestMethod = "GET"
             connection.connectTimeout = 5000
             connection.readTimeout = 5000
-            connection.inputStream.bufferedReader().readText()
+
+            if (connection.responseCode == 200) {
+                connection.inputStream.bufferedReader().readText()
+            } else {
+                throw Exception("HTTP ${connection.responseCode}")
+            }
         } finally {
             connection.disconnect()
         }
@@ -97,10 +93,6 @@ class WidgetUpdateService : Service() {
         val widget = CanvasWidget()
         val glanceIds = manager.getGlanceIds(CanvasWidget::class.java)
 
-        if (glanceIds.isEmpty()) {
-            Log.w("WidgetUpdateService", "No widget ids found to update")
-        }
-
         glanceIds.forEach { glanceId ->
             updateAppWidgetState(this, glanceId) { prefs ->
                 prefs[CANVAS_DATA_KEY] = data
@@ -110,9 +102,7 @@ class WidgetUpdateService : Service() {
     }
 
     override fun onDestroy() {
-        super.onDestroy()
         serviceScope.cancel()
-        isRunning = false
-        Log.d("WidgetUpdateService", "Service destroyed")
+        super.onDestroy()
     }
 }
