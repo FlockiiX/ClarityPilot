@@ -132,9 +132,7 @@ Input Data
     parsedRes = json.loads(res)
 
     if parsedRes["action"] == "continuing":
-        print(
-            f"[runner] Decided {parsedBody['provider']} {parsedBody['raw_payload']} is a continuation"
-        )
+        print(f"[runner] Decided {parsedBody['provider']} is a continuation")
         # Get the last entry for the given type (provider) for this user
         query = {
             "type": parsedBody["provider"],
@@ -151,9 +149,7 @@ Input Data
                 {"$set": {"timestamp_end": str(current_ms)}},
             )
     elif parsedRes["action"] == "newActivity":
-        print(
-            f"[runner] Decided {parsedBody['provider']} {parsedBody['raw_payload']} is a new activity"
-        )
+        print(f"[runner] Decided {parsedBody['provider']} is a new activity")
         current_ms = int(time.time() * 1000)
 
         new_entry: TimelineEntry = {
