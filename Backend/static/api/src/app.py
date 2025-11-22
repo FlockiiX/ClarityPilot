@@ -14,7 +14,9 @@ import github_parser
 # Rabbit MQ
 import pika
 
-connection = pika.BlockingConnection(pika.ConnectionParameters("34.32.62.187:5672"))
+connection = pika.BlockingConnection(
+    pika.ConnectionParameters(host="34.32.62.187", port=5672)
+)
 channel = connection.channel()
 channel.queue_declare(queue="task_queue", durable=True)
 
