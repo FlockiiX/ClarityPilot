@@ -23,7 +23,7 @@ import java.net.HttpURLConnection
 import java.net.URL
 
 class WidgetUpdateService : Service() {
-    private val API_URL = "https://clarity-pilot.com//user/1/widget/androsid"
+    private val API_URL = "https://clarity-pilot.com//user/1/widget/android"
 
     private val serviceScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     private var isRunning = false
