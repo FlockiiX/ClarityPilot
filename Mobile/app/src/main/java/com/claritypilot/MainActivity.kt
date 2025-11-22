@@ -1,5 +1,17 @@
 package com.claritypilot
 
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.rememberModalBottomSheetState
+import androidx.compose.material3.SheetState
+import androidx.compose.ui.viewinterop.AndroidView
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
@@ -8,6 +20,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import android.os.Bundle
+import android.view.ContextThemeWrapper
+import android.widget.NumberPicker
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.Arrangement
@@ -34,11 +48,16 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.unit.dp
 
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.runtime.produceState
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
+import com.claritypilot.R
 import kotlinx.serialization.json.Json
 import java.io.InputStream
 
@@ -46,11 +65,35 @@ import java.io.InputStream
 import coil.compose.AsyncImage
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.* // Viele neue Imports hier
+import androidx.compose.foundation.selection.selectable
+import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.outlined.DateRange
+import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableDoubleStateOf
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.semantics.Role
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.onClick
+import androidx.compose.ui.semantics.role
+import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
-import coil.compose.AsyncImage
+import androidx.compose.ui.viewinterop.AndroidView
 import coil.request.ImageRequest
 
 
@@ -70,16 +113,31 @@ class MainActivity : ComponentActivity() {
         // Hinweis: POST_NOTIFICATIONS gibt es erst ab Android 13 (API 33).
         // Ein Check auf die Version ist gute Praxis, um Abstürze auf alten Geräten zu vermeiden,
         // falls dein compileSdk < 33 ist.
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
-                requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
-            }
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
+            requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
 
+        val myCustomGreen = Color(0xFF0CB446)
+
+        // 2. Erstelle das Farbschema (wir überschreiben hier die wichtigsten Farben)
+        // Wenn du 'secondary' und 'tertiary' nicht setzt, bleiben sie evtl. lila/anders.
+        // Um sicherzugehen, dass ALLES grünlich wirkt, setzen wir die Hauptfarben hier gleich.
+        val myAppColorScheme = lightColorScheme(
+            primary = myCustomGreen,
+            onPrimary = Color.White, // Text auf dem grünen Button
+            secondary = myCustomGreen, // Sekundäre Elemente auch grün
+            tertiary = myCustomGreen,
+
+            // Optional: Damit Hintergründe (wie bei "Connected") einen passenden hellen Ton haben:
+            primaryContainer = Color(0xFFDDF5E4), // Ein sehr helles Grün passend zu deinem Ton
+            onPrimaryContainer = Color(0xFF00210B) // Dunkler Text auf hellem Container
+        )
         // Hier startet die Compose UI mit den zwei Reitern
         // (Ersetzt setContentView(R.layout.widget_initial_layout))
         setContent {
-            MaterialTheme {
+            MaterialTheme(
+                colorScheme = myAppColorScheme
+            ) {
                 MainTabScreen()
             }
         }
@@ -98,7 +156,7 @@ fun ActivityRow(item: ActivityItem) {
         // --- Icon ---
         // Wir verwenden Coil, um das Bild von einer URL zu laden
         AsyncImage(
-            model = coil.request.ImageRequest.Builder(LocalContext.current)
+            model = ImageRequest.Builder(LocalContext.current)
                 .data(item.icon ?: "https://cdn-icons-png.flaticon.com/512/25/25231.png") // Fallback-Icon (GitHub)
                 .crossfade(true)
                 .build(),
@@ -237,12 +295,470 @@ fun loadJsonFromAssets(context: Context, fileName: String): String {
 }
 
 // --- Beispiel Inhalt für den "Settings" Screen ---
+data class AccountOption(
+    val id: String,
+    val name: String,
+    val icon: Int, // In der Praxis hier eher 'resId: Int' verwenden
+    val color: Color, // Markenfarbe für den visuellen Touch
+    val initialConnected: Boolean
+)
+
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen() {
-    Box(
-        modifier = Modifier.fillMaxSize(),
-        contentAlignment = Alignment.Center
+    val context = LocalContext.current
+    val prefs = remember {
+        context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
+    }
+
+    // ... (STATE LOGIK BLEIBT GLEICH WIE VORHER) ...
+    // Kopiere hier deine State-Variablen (accounts, name, gender, birthDateMillis, etc.) rein
+    // Ich kürze das hier ab, da sich an der Logik nichts geändert hat.
+    val accounts = remember {
+        mutableStateListOf(
+            AccountOption("github", "GitHub", R.drawable.github, Color(0xFF333333), prefs.getBoolean("account_github", true)),
+            AccountOption("google", "Google", R.drawable.google, Color(0xFFDB4437), prefs.getBoolean("account_google", false)),
+            AccountOption("slack", "Slack", R.drawable.slack, Color(0xFF4A154B), prefs.getBoolean("account_slack", false))
+        )
+    }
+    var name by remember { mutableStateOf(prefs.getString("profile_name", "Alex Doe") ?: "Alex Doe") }
+    var gender by remember { mutableStateOf(prefs.getString("profile_gender", "Male") ?: "Male") }
+    var birthDateMillis by remember { mutableStateOf(if (prefs.getLong("profile_birthdate", -1L) == -1L) null else prefs.getLong("profile_birthdate", -1L)) }
+    var weight by remember { mutableDoubleStateOf(prefs.getFloat("profile_weight", 65.5f).toDouble()) }
+    var height by remember { mutableIntStateOf(prefs.getInt("profile_height", 172)) }
+
+    var showDatePicker by remember { mutableStateOf(false) }
+    var showWeightPicker by remember { mutableStateOf(false) }
+    var showHeightPicker by remember { mutableStateOf(false) }
+
+    val dateFormatter = remember { SimpleDateFormat("MM-dd-yyyy", Locale.US) }
+    val birthDateString = if (birthDateMillis != null) dateFormatter.format(Date(birthDateMillis!!)) else ""
+
+
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("Settings", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
+            )
+        }
+    ) { paddingValues ->
+        LazyColumn(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(paddingValues)
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
+        ) {
+            // --- LINKED ACCOUNTS ---
+            item {
+                SectionHeader(title = "Linked Accounts")
+                Spacer(modifier = Modifier.height(8.dp))
+                Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                    accounts.forEach { account ->
+                        AccountItem(
+                            account = account,
+                            onToggle = {
+                                val newState = !account.initialConnected
+                                val index = accounts.indexOf(account)
+                                accounts[index] = account.copy(initialConnected = newState)
+                                prefs.edit().putBoolean("account_${account.id}", newState).apply()
+                            }
+                        )
+                    }
+                }
+            }
+
+            // --- MEDICAL PROFILE ---
+            item {
+                SectionHeader(title = "Medical Profile")
+                Spacer(modifier = Modifier.height(16.dp))
+
+                Card(
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+                    shape = RoundedCornerShape(24.dp),
+                    modifier = Modifier.fillMaxWidth().border(1.dp, MaterialTheme.colorScheme.outlineVariant.copy(alpha = 0.5f), RoundedCornerShape(24.dp))
+                ) {
+                    Column(modifier = Modifier.padding(20.dp), verticalArrangement = Arrangement.spacedBy(20.dp)) {
+
+                        ModernTextField(
+                            value = name,
+                            onValueChange = { newName ->
+                                name = newName
+                                prefs.edit().putString("profile_name", newName).apply()
+                            },
+                            label = "Full Name",
+                            icon = Icons.Outlined.Person
+                        )
+
+                        GenderSelection(
+                            selectedGender = gender,
+                            onGenderSelected = { newGender ->
+                                gender = newGender
+                                prefs.edit().putString("profile_gender", newGender).apply()
+                            }
+                        )
+
+                        // Hier Accessibility verbessert: onClickLabel
+                        ClickableTextField(
+                            value = birthDateString,
+                            label = "Date of Birth",
+                            icon = Icons.Outlined.DateRange,
+                            placeholder = "Select Date",
+                            onClick = { showDatePicker = true },
+                        )
+
+                        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                            Box(modifier = Modifier.weight(1f)) {
+                                ClickableTextField(
+                                    value = "$weight",
+                                    label = "Weight",
+                                    suffix = "kg",
+                                    onClick = { showWeightPicker = true },
+                                )
+                            }
+                            Box(modifier = Modifier.weight(1f)) {
+                                ClickableTextField(
+                                    value = "$height",
+                                    label = "Height",
+                                    suffix = "cm",
+                                    onClick = { showHeightPicker = true },
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            item { Spacer(modifier = Modifier.height(50.dp)) }
+        }
+    }
+
+    // ... (HIER FOLGEN DIE GLEICHEN DIALOGE/SHEETS WIE VORHER) ...
+    // ... showDatePicker, showHeightPicker, showWeightPicker Code hier einfügen ...
+    // (Der Dialog-Code war bereits gut, da native Komponenten meist accessible sind)
+
+    // Kurzer Platzhalter für die Dialoge der Vollständigkeit halber, damit der Code kompiliert:
+    if (showDatePicker) {
+        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = birthDateMillis ?: System.currentTimeMillis())
+        DatePickerDialog(
+            onDismissRequest = { showDatePicker = false },
+            confirmButton = { TextButton(onClick = { birthDateMillis = datePickerState.selectedDateMillis; if(birthDateMillis != null) prefs.edit().putLong("profile_birthdate", birthDateMillis!!).apply(); showDatePicker = false }) { Text("OK") } },
+            dismissButton = { TextButton(onClick = { showDatePicker = false }) { Text("Cancel") } }
+        ) { DatePicker(state = datePickerState) }
+    }
+
+    if (showHeightPicker) {
+        ModalBottomSheet(onDismissRequest = { showHeightPicker = false }) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp)) {
+                Text("Select Height", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    NativeWheelPicker(value = height, min = 50, max = 250, onValueChange = { height = it; prefs.edit().putInt("profile_height", it).apply() })
+                    Text("cm", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 16.dp))
+                }
+                Button(onClick = { showHeightPicker = false }, modifier = Modifier.fillMaxWidth().padding(16.dp)) { Text("Done") }
+            }
+        }
+    }
+
+    if (showWeightPicker) {
+        ModalBottomSheet(onDismissRequest = { showWeightPicker = false }) {
+            // ... Weight Picker Code wie vorher ...
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp)) {
+                Text("Select Weight", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
+                Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
+                    val wholePart = weight.toInt()
+                    NativeWheelPicker(value = wholePart, min = 20, max = 200, onValueChange = { newWhole ->
+                        val decimalPart = weight - weight.toInt(); weight = newWhole + decimalPart; prefs.edit().putFloat("profile_weight", weight.toFloat()).apply()
+                    })
+                    Text(".", style = MaterialTheme.typography.headlineLarge, modifier = Modifier.padding(horizontal = 8.dp))
+                    val decimalPartAsInt = ((weight * 10).toInt() % 10)
+                    NativeWheelPicker(value = decimalPartAsInt, min = 0, max = 9, onValueChange = { newDecimal ->
+                        val currentWhole = weight.toInt(); weight = currentWhole + (newDecimal / 10.0); prefs.edit().putFloat("profile_weight", weight.toFloat()).apply()
+                    })
+                    Text("kg", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(start = 16.dp))
+                }
+                Button(onClick = { showWeightPicker = false }, modifier = Modifier.fillMaxWidth().padding(16.dp)) { Text("Done") }
+            }
+        }
+    }
+}
+// --- HELPER COMPONENTS ---
+
+// Ein Textfeld, das aussieht wie Input, aber auf Klick reagiert (read-only)
+@Composable
+fun ClickableTextField(
+    value: String,
+    label: String,
+    onClick: () -> Unit,
+    onClickLabel: String? = null, // Neu: Was passiert beim Klick?
+    icon: ImageVector? = null,
+    suffix: String? = null,
+    placeholder: String? = null
+) {
+    // InteractionSource für Ripple-Effekt behalten wir
+    val interactionSource = remember { MutableInteractionSource() }
+
+    LaunchedEffect(interactionSource) {
+        interactionSource.interactions.collect { interaction ->
+            if (interaction is PressInteraction.Release) {
+                onClick()
+            }
+        }
+    }
+
+    OutlinedTextField(
+        value = value,
+        onValueChange = {},
+        readOnly = true,
+        enabled = true,
+        label = { Text(label) },
+        placeholder = if (placeholder != null) { { Text(placeholder) } } else null,
+        leadingIcon = if (icon != null) {
+            { Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+        } else null,
+        suffix = if (suffix != null) {
+            { Text(suffix, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold) }
+        } else null,
+        modifier = Modifier
+            .fillMaxWidth()
+            // WICHTIG: Semantics überschreiben
+            .semantics {
+                role = Role.Button // Screenreader sagt "Button Date of Birth"
+                if (onClickLabel != null) {
+                    // Screenreader sagt "Double tap to Change date of birth"
+                    this.onClick(label = onClickLabel) {
+                        onClick()
+                        true
+                    }
+                }
+            },
+        shape = RoundedCornerShape(12.dp),
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        ),
+        interactionSource = interactionSource
+    )
+}
+
+// Das native Scroll-Rad (Der geheime Trick für gute UX)
+@Composable
+fun NativeWheelPicker(
+    value: Int,
+    min: Int,
+    max: Int,
+    onValueChange: (Int) -> Unit
+) {
+    AndroidView(
+        modifier = Modifier.width(64.dp),
+        factory = { context ->
+            // TRICK: Wir zwingen den Picker in ein "Light"-Theme.
+            // Das sorgt dafür, dass die Schrift schwarz/dunkel und gut lesbar ist.
+            val wrappedContext =
+                ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Light)
+
+            NumberPicker(wrappedContext).apply {
+                minValue = min
+                maxValue = max
+                this.value = value
+                descendantFocusability = NumberPicker.FOCUS_BLOCK_DESCENDANTS
+                setOnValueChangedListener { _, _, newVal ->
+                    onValueChange(newVal)
+                }
+            }
+        },
+        update = { view ->
+            if (view.value != value) {
+                view.value = value
+            }
+        }
+    )
+}
+
+// --- Helper Composables für UI Konsistenz ---
+@Composable
+fun SectionHeader(title: String) {
+    Text(
+        text = title,
+        style = MaterialTheme.typography.titleMedium,
+        color = MaterialTheme.colorScheme.primary,
+        fontWeight = FontWeight.Bold,
+        modifier = Modifier.semantics { heading() } // WICHTIG: Screenreader springen hierhin
+    )
+}
+
+@Composable
+fun ModernTextField(
+    value: String,
+    onValueChange: (String) -> Unit,
+    label: String,
+    icon: ImageVector? = null,
+    suffix: String? = null,
+    placeholder: String? = null,
+    keyboardType: KeyboardType = KeyboardType.Text
+) {
+    OutlinedTextField(
+        value = value,
+        onValueChange = onValueChange,
+        label = { Text(label) },
+        placeholder = if (placeholder != null) { { Text(placeholder) } } else null,
+        leadingIcon = if (icon != null) {
+            { Icon(imageVector = icon, contentDescription = null, tint = MaterialTheme.colorScheme.primary) }
+        } else null,
+        suffix = if (suffix != null) {
+            { Text(suffix, style = MaterialTheme.typography.bodySmall, fontWeight = FontWeight.Bold) }
+        } else null,
+        modifier = Modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp), // Weiche Ecken
+        singleLine = true,
+        colors = OutlinedTextFieldDefaults.colors(
+            focusedBorderColor = MaterialTheme.colorScheme.primary,
+            focusedLabelColor = MaterialTheme.colorScheme.primary,
+            unfocusedBorderColor = MaterialTheme.colorScheme.outlineVariant,
+        ),
+        keyboardOptions = KeyboardOptions(
+            keyboardType = keyboardType,
+            imeAction = ImeAction.Next
+        )
+    )
+}
+@Composable
+fun GenderSelection(
+    selectedGender: String,
+    onGenderSelected: (String) -> Unit
+) {
+    Column {
+        Text(
+            text = "Gender",
+            style = MaterialTheme.typography.bodySmall,
+            color = MaterialTheme.colorScheme.onSurfaceVariant,
+            modifier = Modifier.padding(start = 4.dp, bottom = 8.dp)
+        )
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .selectableGroup(), // Gruppiert die Elemente
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            val genders = listOf("Male", "Female", "Other")
+            genders.forEach { gender ->
+                val isSelected = selectedGender == gender
+                val containerColor = if (isSelected) MaterialTheme.colorScheme.primary else Color.Transparent
+                val contentColor = if (isSelected) Color.White else MaterialTheme.colorScheme.onSurfaceVariant
+                val borderColor = if (isSelected) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.outlineVariant
+
+                Box(
+                    modifier = Modifier
+                        .weight(1f)
+                        .height(40.dp)
+                        .clip(RoundedCornerShape(100))
+                        .border(1.dp, borderColor, RoundedCornerShape(100))
+                        .background(containerColor)
+                        // WICHTIG: selectable statt clickable nutzen!
+                        .selectable(
+                            selected = isSelected,
+                            onClick = { onGenderSelected(gender) },
+                            role = Role.RadioButton // Screenreader sagt "Radio Button Male, Selected"
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = gender,
+                        style = MaterialTheme.typography.labelLarge,
+                        color = contentColor,
+                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Normal
+                    )
+                }
+            }
+        }
+    }
+}
+@Composable
+fun AccountItem(
+    account: AccountOption,
+    onToggle: () -> Unit
+) {
+    Card(
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+        ),
+        shape = RoundedCornerShape(16.dp),
+        modifier = Modifier.fillMaxWidth()
     ) {
-        Text(text = "Hier sind die Einstellungen", style = MaterialTheme.typography.headlineMedium)
+        Row(
+            modifier = Modifier
+                .padding(16.dp)
+                .fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.SpaceBetween
+        ) {
+            Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                Box(
+                    modifier = Modifier
+                        .size(48.dp)
+                        .clip(CircleShape)
+                        .background(Color.White),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Image(
+                        painter = painterResource(id = account.icon),
+                        contentDescription = null, // Dekorativ, da der Name daneben steht
+                        modifier = Modifier.size(28.dp)
+                    )
+                }
+
+                Spacer(modifier = Modifier.width(16.dp))
+
+                Column {
+                    Text(
+                        text = account.name,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold
+                    )
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        val statusColor = if (account.initialConnected) Color(0xFF4CAF50) else Color.Gray
+                        val statusText = if (account.initialConnected) "Connected" else "Disconnected"
+                        // Status Punkt für Screenreader ignorieren, Text reicht
+                        Box(
+                            modifier = Modifier
+                                .size(8.dp)
+                                .clip(CircleShape)
+                                .background(statusColor)
+                        )
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = statusText,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
+            // Button Beschriftung für Accessibility verbessern
+            val actionVerb = if (account.initialConnected) "Disconnect" else "Login to"
+            val a11yDescription = "$actionVerb ${account.name}" // z.B. "Disconnect GitHub"
+
+            if (account.initialConnected) {
+                OutlinedButton(
+                    onClick = onToggle,
+                    colors = ButtonDefaults.outlinedButtonColors(contentColor = MaterialTheme.colorScheme.error),
+                    modifier = Modifier.semantics { contentDescription = a11yDescription }
+                ) {
+                    Text("Disconnect")
+                }
+            } else {
+                Button(
+                    onClick = onToggle,
+                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                    modifier = Modifier.semantics { contentDescription = a11yDescription }
+                ) {
+                    Text("Login")
+                }
+            }
+        }
     }
 }
