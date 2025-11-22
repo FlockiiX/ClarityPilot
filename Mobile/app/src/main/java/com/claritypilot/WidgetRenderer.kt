@@ -77,7 +77,7 @@ object WidgetRenderer {
         return withContext(Dispatchers.Default) {
             val bitmap = createBitmap(widthPx, heightPx)
             val canvas = Canvas(bitmap)
-            bitmap.eraseColor(Color.BLACK)
+            //bitmap.eraseColor(Color.BLACK)
 
 
             val btnPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
