@@ -1,100 +1,125 @@
 package com.claritypilot
 
-import androidx.compose.material3.DatePicker
-import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.rememberDatePickerState
-import androidx.compose.material3.ModalBottomSheet
-import androidx.compose.material3.rememberModalBottomSheetState
-import androidx.compose.material3.SheetState
-import androidx.compose.ui.viewinterop.AndroidView
-import java.text.SimpleDateFormat
-import java.util.Date
-import java.util.Locale
-import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.interaction.PressInteraction
+
 import android.Manifest
 import android.content.Context
 import android.content.pm.PackageManager
-import android.os.Build
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.appcompat.app.AppCompatActivity
-import androidx.core.content.ContextCompat
 import android.os.Bundle
 import android.view.ContextThemeWrapper
 import android.widget.NumberPicker
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.pager.HorizontalPager
-import androidx.compose.foundation.pager.rememberPagerState
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.layout.ContentScale
-import androidx.compose.ui.unit.dp
-
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.interaction.PressInteraction
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.runtime.produceState
-import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
-import com.claritypilot.R
-import kotlinx.serialization.json.Json
-import java.io.InputStream
-
-
-import coil.compose.AsyncImage
-import kotlinx.coroutines.launch
-import androidx.compose.foundation.layout.* // Viele neue Imports hier
+import androidx.compose.foundation.pager.HorizontalPager
+import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.selection.selectable
 import androidx.compose.foundation.selection.selectableGroup
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.History
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Tab
+import androidx.compose.material3.TabRow
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.lightColorScheme
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.semantics.Role
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.onClick
 import androidx.compose.ui.semantics.role
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
+import androidx.core.content.ContextCompat
+import coil.compose.AsyncImage
 import coil.request.ImageRequest
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
+import java.io.InputStream
+import java.net.HttpURLConnection
+import java.net.URL
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
+import androidx.compose.foundation.Canvas
+import androidx.compose.foundation.layout.IntrinsicSize
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.width
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.graphics.PathEffect
+import androidx.compose.ui.unit.Dp
+import androidx.compose.material3.ElevatedCard
+import androidx.compose.material3.Surface
+import androidx.compose.ui.graphics.RectangleShape
+import kotlinx.coroutines.delay
 
 
 class MainActivity : ComponentActivity() {
@@ -108,11 +133,6 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-
-        // Permission Logik (unverändert übernommen, nur in onCreate platziert)
-        // Hinweis: POST_NOTIFICATIONS gibt es erst ab Android 13 (API 33).
-        // Ein Check auf die Version ist gute Praxis, um Abstürze auf alten Geräten zu vermeiden,
-        // falls dein compileSdk < 33 ist.
         if (ContextCompat.checkSelfPermission(this, Manifest.permission.POST_NOTIFICATIONS) != PackageManager.PERMISSION_GRANTED) {
             requestPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
         }
@@ -144,6 +164,24 @@ class MainActivity : ComponentActivity() {
     }
 }
 
+suspend fun loadJsonFromUrl(urlString: String): String {
+    return withContext(Dispatchers.IO) {
+        try {
+            val url = URL(urlString)
+            val connection = url.openConnection() as HttpURLConnection
+            connection.requestMethod = "GET"
+            connection.connect()
+
+            val inputStream: InputStream = connection.inputStream
+            inputStream.bufferedReader().use { it.readText() }
+        } catch (e: Exception) {
+            e.printStackTrace()
+            "{}" // Leeres JSON bei Fehler zurückgeben
+        }
+    }
+}
+
+
 @Composable
 fun ActivityRow(item: ActivityItem) {
     Row(
@@ -157,14 +195,14 @@ fun ActivityRow(item: ActivityItem) {
         // Wir verwenden Coil, um das Bild von einer URL zu laden
         AsyncImage(
             model = ImageRequest.Builder(LocalContext.current)
-                .data(item.icon ?: "https://cdn-icons-png.flaticon.com/512/25/25231.png") // Fallback-Icon (GitHub)
+                .data(item.icon) // Fallback-Icon (GitHub)
                 .crossfade(true)
                 .build(),
             contentDescription = item.type,
             contentScale = ContentScale.Crop,
             modifier = Modifier
                 .size(40.dp)
-                .clip(CircleShape) // Macht das Icon rund
+
         )
 
         // --- Beschreibung ---
@@ -193,7 +231,7 @@ data class TabItem(
 @Composable
 fun MainTabScreen() {
     val tabs = listOf(
-        TabItem("View", Icons.Filled.Home) { ViewScreen() },
+        TabItem("History", Icons.Filled.History) { ViewScreen() },
         TabItem("Settings", Icons.Filled.Settings) { SettingsScreen() }
     )
 
@@ -245,44 +283,218 @@ fun MainTabScreen() {
 fun ViewScreen() {
     val context = LocalContext.current
 
-    val timelineData = produceState<TimelineData>(initialValue = emptyMap(), producer = {
-        val jsonString = loadJsonFromAssets(context, "timeline.json")
-        val json = Json { ignoreUnknownKeys = true }
-        value = if (jsonString.isNotBlank()) json.decodeFromString(jsonString) else emptyMap()
-    }).value
+    // State für die Daten
+    var timelineData by remember { mutableStateOf<TimelineData>(emptyMap()) }
 
-    LazyColumn(modifier = Modifier.fillMaxSize()) {
+    // Polling Logik: Alle 10 Sekunden checken
+    LaunchedEffect(Unit) {
+        while (true) {
+            // 1. Daten im Hintergrund laden
+            val jsonString = loadJsonFromUrl("https://clarity-pilot.com/user/1/timeline/android")
+            val json = Json { ignoreUnknownKeys = true }
+            val newData = if (jsonString.isNotBlank()) {
+                try {
+                    json.decodeFromString<TimelineData>(jsonString)
+                } catch (e: Exception) {
+                    emptyMap()
+                }
+            } else {
+                emptyMap()
+            }
+
+            // 2. "Silent Update": Nur zuweisen, wenn sich wirklich was geändert hat.
+            // Kotlin Maps vergleichen Inhalte automatisch korrekt (equals).
+            // Dadurch flackert nichts und der Scroll-Status bleibt erhalten.
+            if (newData != timelineData) {
+                timelineData = newData
+            }
+
+            // 3. 10 Sekunden warten
+            delay(10_000)
+        }
+    }
+
+    // Design Konstanten
+    val timelineColor = MaterialTheme.colorScheme.outlineVariant
+    val dotColor = MaterialTheme.colorScheme.primary
+
+    LazyColumn(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(horizontal = 16.dp)
+    ) {
         if (timelineData.isEmpty()) {
             item {
+                // Nur ganz am Anfang (beim allerersten Start) zeigen wir "Loading"
+                // Später bei Updates sieht man das hier nicht mehr.
                 Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
-                    Text("Lade Daten oder keine Einträge gefunden...")
+                    Text("Loading...", color = Color.Gray)
                 }
             }
         } else {
             timelineData.forEach { (day, activities) ->
                 stickyHeader {
-                    Column(
+                    TimelineDateHeader(day = day)
+                }
+
+                items(activities.size) { index ->
+                    val activity = activities[index]
+                    // Prüfen ob es das letzte Item der GRUPPE (des Tages) ist
+                    val isLastItemOfDay = index == activities.lastIndex
+
+                    ModernTimelineItem(
+                        item = activity,
+                        isLast = isLastItemOfDay,
+                        lineColor = timelineColor,
+                        dotColor = dotColor
+                    )
+                }
+            }
+            item { Spacer(modifier = Modifier.height(80.dp)) }
+        }
+    }
+}
+
+// --- KOMPONENTEN ---
+
+@Composable
+fun TimelineDateHeader(day: String) {
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .background(MaterialTheme.colorScheme.surface)
+            .padding(vertical = 16.dp),
+        contentAlignment = Alignment.CenterStart
+    ) {
+        Surface(
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+            shape = RoundedCornerShape(50),
+            modifier = Modifier.padding(start = 8.dp)
+        ) {
+            Text(
+                text = day.uppercase(),
+                style = MaterialTheme.typography.labelMedium,
+                color = Color.Black,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+            )
+        }
+    }
+}
+
+@Composable
+fun ModernTimelineItem(
+    item: ActivityItem,
+    isLast: Boolean,
+    lineColor: Color,
+    dotColor: Color
+) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .height(IntrinsicSize.Min)
+    ) {
+        // --- SPALTE 1: Die Timeline (Grafik) ---
+        Box(
+            modifier = Modifier
+                .width(50.dp)
+                .fillMaxHeight(),
+            contentAlignment = Alignment.TopCenter
+        ) {
+            // A. Die Linie
+            Canvas(
+                modifier = Modifier
+                    .fillMaxHeight()
+                    .width(2.dp)
+            ) {
+                // LOGIK-ÄNDERUNG HIER:
+                // Start: Immer oben (0f)
+                // Ende: Wenn es das letzte Item ist -> Mitte (center.y). Sonst -> Ganz unten (size.height).
+                val endY = if (isLast) center.y else size.height
+
+                drawLine(
+                    color = lineColor,
+                    start = Offset(x = center.x, y = 0f),
+                    end = Offset(x = center.x, y = endY),
+                    strokeWidth = 2.dp.toPx()
+                )
+            }
+
+            // B. Der Punkt (Knoten)
+            Surface(
+                shape = RectangleShape,
+                color = MaterialTheme.colorScheme.surface,
+               // border = androidx.compose.foundation.BorderStroke(2.dp, dotColor),
+                modifier = Modifier
+                    .padding(top = 18.dp)
+                    .size(32.dp),
+                //shadowElevation = 2.dp
+            ) {
+                Box(contentAlignment = Alignment.Center) {
+                    AsyncImage(
+                        model = ImageRequest.Builder(LocalContext.current)
+                            .data(item.icon)
+                            .crossfade(true)
+                            .build(),
+                        contentDescription = null,
                         modifier = Modifier
-                            .fillMaxWidth()
-                            .background(MaterialTheme.colorScheme.surfaceVariant)
-                            .padding(horizontal = 16.dp, vertical = 8.dp)
-                    ) {
+                            .size(item.iconSize.dp),
+                        //contentScale = ContentScale.Fit
+                    )
+                }
+            }
+        }
+
+        // --- SPALTE 2: Der Inhalt (Karte) ---
+        Box(
+            modifier = Modifier
+                .weight(1f)
+                .padding(bottom = 24.dp, end = 8.dp)
+        ) {
+            ElevatedCard(
+                onClick = { /* Optional */ },
+                colors = CardDefaults.elevatedCardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceContainerLow
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
+                shape = RoundedCornerShape(16.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp)
+                ) {
+                    Text(
+                        text = item.label,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Spacer(modifier = Modifier.height(4.dp))
+
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
-                            text = day,
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold
+                            text = item.type,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = Color.Gray
+                        )
+                        Text(
+                            text = " • ",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.outline
+                        )
+                        Text(
+                            text = item.duration,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
-                }
-                items(activities) { activity ->
-                    ActivityRow(item = activity)
-                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                 }
             }
         }
     }
 }
-
 // DIESE FUNKTION HINZUFÜGEN:
 fun loadJsonFromAssets(context: Context, fileName: String): String {
     return try {

@@ -8,7 +8,8 @@ data class ActivityItem(
     val type: String,
     val label: String,
     val duration: String,
-    val icon: String? = null // 'icon?' aus JSON wird hier zu 'icon'
+    val icon: String,
+    val iconSize: Int= 32,
 )
 
 // Wrapper für die komplette Timeline, die aus den Tages-Einträgen besteht.
