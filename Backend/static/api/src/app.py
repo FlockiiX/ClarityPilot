@@ -15,7 +15,11 @@ import github_parser
 import pika
 
 connection = pika.BlockingConnection(
-    pika.ConnectionParameters(host="34.32.62.187", port=5672)
+    pika.ConnectionParameters(
+        host="34.32.62.187",
+        port=5672,
+        credentials=pika.credentials.PlainCredentials("user", "passwordadhahsd7"),
+    )
 )
 channel = connection.channel()
 channel.queue_declare(queue="task_queue", durable=True)
