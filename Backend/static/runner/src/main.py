@@ -8,7 +8,7 @@ import time
 from google import genai
 from google.genai import types
 
-client = genai.Client(api_key="AIzaSyAQxwUDf8mZcrsiGmyR97suGQn4el_XW0M")
+LLMClient = genai.Client(api_key="AIzaSyAQxwUDf8mZcrsiGmyR97suGQn4el_XW0M")
 
 
 class TimelineMetadata(TypedDict):
@@ -124,7 +124,7 @@ Input Data
         )
     ]
 
-    response = client.models.generate_content(
+    response = LLMClient.models.generate_content(
         model="gemini-3-pro-preview", contents=contents
     )
     res = response.text
@@ -186,8 +186,8 @@ connection = pika.BlockingConnection(
 
 
 # Setup mongo
-client = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
-db = client["clarity"]
+mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
+db = mongoClient["clarity"]
 collection = db["tracker"]
 
 
