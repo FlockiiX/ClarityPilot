@@ -112,6 +112,7 @@ import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.ui.geometry.Offset
@@ -266,9 +267,6 @@ fun MainTabScreen() {
         HorizontalPager(
             // Hinweis: Der Column-Wrapper ist hier nicht unbedingt nötig.
             // Das padding kann direkt am Pager angewendet werden.
-            modifier = Modifier
-                .padding(innerPadding)
-                .fillMaxSize(),
             state = pagerState
         ) { pageIndex ->
             tabs[pageIndex].screen()
@@ -279,7 +277,7 @@ fun MainTabScreen() {
 // --- Beispiel Inhalt für den "View" Screen ---
 
 // DURCH DIESE NEUE VERSION:
-@OptIn(ExperimentalFoundationApi::class)
+@OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ViewScreen() {
     val context = LocalContext.current
@@ -319,11 +317,19 @@ fun ViewScreen() {
     val timelineColor = MaterialTheme.colorScheme.outlineVariant
     val dotColor = MaterialTheme.colorScheme.primary
 
+    Scaffold(
+        topBar = {
+            CenterAlignedTopAppBar(
+                title = { Text("History", style = MaterialTheme.typography.headlineMedium, fontWeight = FontWeight.Bold) }
+            )
+        }
+    ) { paddingValues ->
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
             .background(MaterialTheme.colorScheme.surface)
             .padding(horizontal = 16.dp)
+            .padding(paddingValues)
     ) {
         if (timelineData.isEmpty()) {
             item {
@@ -354,7 +360,7 @@ fun ViewScreen() {
             }
             item { Spacer(modifier = Modifier.height(80.dp)) }
         }
-    }
+    }   }
 }
 
 // --- KOMPONENTEN ---
@@ -369,7 +375,7 @@ fun TimelineDateHeader(day: String) {
         contentAlignment = Alignment.CenterStart
     ) {
         Surface(
-            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.6f),
+            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
             shape = RoundedCornerShape(50),
             modifier = Modifier.padding(start = 8.dp)
         ) {
@@ -533,7 +539,8 @@ fun SettingsScreen() {
             AccountOption("github", "GitHub", R.drawable.github, Color(0xFF333333), prefs.getBoolean("account_github", true)),
             AccountOption("teams", "Microsoft Teams", R.drawable.teams, Color(0xFFDB4437), prefs.getBoolean("account_teams", false)),
             AccountOption("jira", "Jira", R.drawable.jira, Color(0xFFDB4437), prefs.getBoolean("account_jira", false)),
-            AccountOption("slack", "Slack", R.drawable.slack, Color(0xFF4A154B), prefs.getBoolean("account_slack", false))
+            AccountOption("slack", "Slack", R.drawable.slack, Color(0xFF4A154B), prefs.getBoolean("account_slack", false)),
+            AccountOption("googlefit", "Google Fit", R.drawable.googlefit, Color(0xFF4A154B), prefs.getBoolean("account_googlefit", false))
         )
     }
     var name by remember { mutableStateOf(prefs.getString("profile_name", "Alex Doe") ?: "Alex Doe") }
@@ -971,7 +978,7 @@ fun AccountItem(
                     colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                     modifier = Modifier.semantics { contentDescription = a11yDescription }
                 ) {
-                    Text("Login")
+                    Text("Connect")
                 }
             }
         }

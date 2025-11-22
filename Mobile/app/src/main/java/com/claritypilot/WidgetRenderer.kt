@@ -41,6 +41,7 @@ object WidgetRenderer {
                 style = Paint.Style.FILL
             }
             val bgRect = RectF(0f, 0f, widthPx.toFloat(), heightPx.toFloat())
+
             val cornerRadius = 24f * density
             canvas.drawRoundRect(bgRect, cornerRadius, cornerRadius, scrimPaint)
 
@@ -57,6 +58,7 @@ object WidgetRenderer {
 
             canvas.withTranslation(padding, startY) {
                 scale(scale, scale)
+                translate((widthPx - (scale * widthPx)) / 2, 32f)
                 var currentY = 0f
                 bodyElements.forEach { element ->
                     currentY += drawElement(context, this, element, 0f, currentY, availableWidth, density, false)
@@ -75,6 +77,8 @@ object WidgetRenderer {
         return withContext(Dispatchers.Default) {
             val bitmap = createBitmap(widthPx, heightPx)
             val canvas = Canvas(bitmap)
+            bitmap.eraseColor(Color.BLACK)
+
 
             val btnPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
                 color = Color.WHITE
@@ -118,7 +122,7 @@ object WidgetRenderer {
     ): Float {
         return when (el) {
             is WidgetElement.Text -> drawText(el, c, x, y, w, d, measureOnly)
-            is WidgetElement.Spacer -> 16f * d
+            is WidgetElement.Spacer -> 8f * d
             is WidgetElement.Card -> drawCard(ctx, c, el, x, y, w, d, measureOnly)
             is WidgetElement.Row -> drawRow(ctx, c, el, x, y, w, d, measureOnly)
             is WidgetElement.Cta -> 0f
