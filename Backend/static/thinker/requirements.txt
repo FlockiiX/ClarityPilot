@@ -1,0 +1,6 @@
+pika
+pymongo
+google-cloud-aiplatform
+google-genai
+celery
+redis

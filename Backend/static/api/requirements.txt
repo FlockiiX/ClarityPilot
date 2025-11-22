@@ -2,3 +2,4 @@ Flask
 requests
 pika
 pymongo
+redis

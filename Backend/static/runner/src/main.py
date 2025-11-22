@@ -59,7 +59,7 @@ def callback(ch, method, properties, body):
     relevantTasks = []
 
     thirty_minutes_ago = int(time.time() * 1000) - (
-        30 * 60 * 1000
+        60 * 60 * 1000
     )  # Current time in ms - 30 minutes in ms
 
     for result in results:
@@ -177,6 +177,13 @@ Input Data
     ch.basic_ack(delivery_tag=method.delivery_tag)
 
 
+# Setup mongo
+mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
+db = mongoClient["clarity"]
+collection = db["tracker"]
+
+
+# Setup rabbit
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(
         host="34.32.62.187",
@@ -185,14 +192,6 @@ connection = pika.BlockingConnection(
     )
 )
 
-
-# Setup mongo
-mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
-db = mongoClient["clarity"]
-collection = db["tracker"]
-
-
-# Setup rabbit
 channel = connection.channel()
 
 channel.queue_declare(queue="task_queue", durable=True)

@@ -7,6 +7,7 @@ import hmac
 import hashlib
 import pika
 
+import redis
 import logging
 from datetime import datetime, timezone, timedelta
 
@@ -44,6 +45,12 @@ class TimelineEntry(TypedDict):
     timestamp_end: str
     punchline: str
     metadata: TimelineMetadata
+
+
+# Redis setup
+redisClient = redis.Redis(
+    host="34.32.62.187", port=6379, db=0, password="yourpasd2ddsword"
+)
 
 
 # Mongo Setup
@@ -120,38 +127,43 @@ def timeline_android():
 # Android widget
 @app.route("/user/1/widget/android", methods=["GET"])
 def widget_android():
-    return json.dumps(
-        {
-            "elements": [
-                {
-                    "type": "row",
-                    "columns": [
-                        {
-                            "type": "text",
-                            "content": "Never gonna give",
-                            "size": 14,
-                            "color": "#888888",
-                            "isBold": True,
-                        },
-                        {
-                            "type": "text",
-                            "content": "you",
-                            "size": 14,
-                            "color": "#888888",
-                            "isBold": True,
-                        },
-                        {
-                            "type": "text",
-                            "content": "LIVE",
-                            "size": 12,
-                            "color": "up",
-                            "align": "right",
-                        },
-                    ],
-                }
-            ],
-        }
-    )
+    redisContent = redisClient.get("widget")
+
+    if redisContent != None:
+        return json.dumps(redisContent)
+    else:
+        return json.dumps(
+            {
+                "elements": [
+                    {
+                        "type": "row",
+                        "columns": [
+                            {
+                                "type": "text",
+                                "content": "Never gonna give",
+                                "size": 14,
+                                "color": "#888888",
+                                "isBold": True,
+                            },
+                            {
+                                "type": "text",
+                                "content": "you",
+                                "size": 14,
+                                "color": "#888888",
+                                "isBold": True,
+                            },
+                            {
+                                "type": "text",
+                                "content": "LIVE",
+                                "size": 12,
+                                "color": "up",
+                                "align": "right",
+                            },
+                        ],
+                    }
+                ],
+            }
+        )
 
 
 # Debugging
