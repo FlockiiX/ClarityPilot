@@ -73,8 +73,8 @@ def github_auth_callback():
 
 @app.route("/gh/webhooks", methods=["POST"])
 def github_webhooks():
+    app.logger.error("asd")
     app.logger.info(request)
-    app.logger.info("asd")
     # signature_header = request.headers.get("X-Hub-Signature-256")
     # if not signature_header:
     #     return "Forbidden", 403
