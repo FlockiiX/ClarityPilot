@@ -1,9 +1,10 @@
 package com.claritypilot
 
-
 import android.content.Context
+import android.graphics.Bitmap
 import android.util.Log
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.produceState
 import androidx.datastore.preferences.core.Preferences
 import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.glance.GlanceId
@@ -38,43 +39,41 @@ class CanvasWidget : GlanceAppWidget() {
             val prefs = currentState<Preferences>()
             val rawData = prefs[CANVAS_DATA_KEY]
 
-            val bitmap = remember(size, rawData) {
+            val bitmap by produceState<Bitmap?>(initialValue = null, key1 = size, key2 = rawData) {
                 val data = try {
                     if (rawData.isNullOrBlank()) {
-                        getFriendlyState("We finalize your next tip..")
+                        getFriendlyState()
                     } else {
-                        if (rawData.startsWith("ERROR:")) {
-                            throw Exception(rawData.removePrefix("ERROR: "))
-                        }
                         jsonParser.decodeFromString<WidgetResponse>(rawData)
                     }
                 } catch (e: Exception) {
-                    Log.e("CanvasWidget", "Rendering fallback", e)
-                    getFriendlyState("We finalize your next tip")
+                    Log.e("CanvasWidget", "Json Error", e)
+                    getFriendlyState()
                 }
-                WidgetRenderer.render(ctx, size, data)
+
+                value = WidgetRenderer.render(ctx, size, data)
             }
 
             Box(modifier = GlanceModifier.fillMaxSize()) {
-                Image(
-                    provider = ImageProvider(bitmap),
-                    contentDescription = "Widget Content",
-                    modifier = GlanceModifier.fillMaxSize()
-                )
+                if (bitmap != null) {
+                    Image(
+                        provider = ImageProvider(bitmap!!),
+                        contentDescription = "Widget Content",
+                        modifier = GlanceModifier.fillMaxSize()
+                    )
+                }
             }
         }
     }
 
-    private fun getFriendlyState(title: String): WidgetResponse {
+    private fun getFriendlyState(): WidgetResponse {
         return WidgetResponse(
             elements = listOf(
                 WidgetElement.Spacer(height = 16f),
-                WidgetElement.Text(
-                    content = title,
-                    size = 22f,
-                    color = "#FFFFFF",
-                    isBold = true,
-                    align = "center"
+                WidgetElement.Image(
+                    url = "robot",
+                    height = 64f,
+                    scaleType = "fit"
                 ),
                 WidgetElement.Spacer(height = 8f),
                 WidgetElement.Text(

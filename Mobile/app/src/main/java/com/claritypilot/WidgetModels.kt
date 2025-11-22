@@ -23,6 +23,15 @@ sealed class WidgetElement {
     ) : WidgetElement()
 
     @Serializable
+    @SerialName("image")
+    data class Image(
+        val url: String,
+        val height: Float = 200f,
+        val scaleType: String = "crop",
+        val cornerRadius: Float = 12f
+    ) : WidgetElement()
+
+    @Serializable
     @SerialName("spacer")
     data class Spacer(
         val height: Float
