@@ -1,5 +1,5 @@
 from flask import Flask, request, jsonify
-from pymongo import MongoClient, DESCENDING
+from pymongo import MongoClient, DESCENDING, ASCENDING
 from typing import TypedDict, List
 
 import json
@@ -66,7 +66,7 @@ def timeline_android():
 
     # Query MongoDB for entries in the last 7 days, sorted by start timestamp desc
     cursor = collection.find({"timestamp_start": {"$gte": seven_days_ago_ms}}).sort(
-        "timestamp_start", DESCENDING
+        "timestamp_end", DESCENDING
     )
 
     entries: List[TimelineEntry] = list(cursor)  # type: ignore[assignment]
@@ -114,7 +114,7 @@ def timeline_android():
 
         grouped.setdefault(label, []).append(item)
 
-    return jsonify(grouped)
+    return json.dumps(grouped)
 
 
 # Android widget
