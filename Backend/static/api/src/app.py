@@ -78,7 +78,7 @@ def github_webhooks():
     # signature_header = request.headers.get("X-Hub-Signature-256")
     # if not signature_header:
     #     return "Forbidden", 403
-
+    # ds
     # signature = signature_header.split("=")[1]
 
     # mac = hmac.new(WEBHOOK_SECRET.encode(), msg=request.data, digestmod=hashlib.sha256)
