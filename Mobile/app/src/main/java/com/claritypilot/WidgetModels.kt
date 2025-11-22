@@ -11,44 +11,41 @@ data class WidgetResponse(
 
 @Serializable
 sealed class WidgetElement {
+    abstract val weight: Float
 
     @Serializable
     @SerialName("text")
     data class Text(
         val content: String,
-        val size: Float = 16f,
-        val color: String = "#FFFFFF",
-        val isBold: Boolean = false,
-        val align: String = "left"
+        val fontStyle: String = "normal",
+        override val weight: Float = 1f
     ) : WidgetElement()
 
     @Serializable
-    @SerialName("image")
-    data class Image(
-        val url: String,
-        val height: Float = 200f,
-        val scaleType: String = "crop",
-        val cornerRadius: Float = 12f
+    @SerialName("cta")
+    data class Cta(
+        val content: String,
+        val link: String,
+        override val weight: Float = 1f
     ) : WidgetElement()
 
     @Serializable
     @SerialName("spacer")
     data class Spacer(
-        val height: Float
+        override val weight: Float = 1f
     ) : WidgetElement()
 
     @Serializable
     @SerialName("card")
     data class Card(
-        val color: String = "#1E1E1E",
-        val cornerRadius: Float = 16f,
-        val padding: Float = 12f,
-        val content: List<WidgetElement>
+        val content: List<WidgetElement>,
+        override val weight: Float = 1f
     ) : WidgetElement()
 
     @Serializable
     @SerialName("row")
     data class Row(
-        val columns: List<WidgetElement>
+        val columns: List<WidgetElement>,
+        override val weight: Float = 1f
     ) : WidgetElement()
 }
