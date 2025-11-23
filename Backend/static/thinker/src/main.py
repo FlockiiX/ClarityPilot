@@ -15,6 +15,7 @@ from google.genai.types import (
     GoogleMaps,
     Tool,
 )
+import os
 
 MAPPED_NAMES = {
     "": "",
@@ -24,16 +25,19 @@ MAPPED_NAMES = {
     "jira": "Jira",
 }
 
-LLMClient = genai.Client(api_key="AIzaSyAQxwUDf8mZcrsiGmyR97suGQn4el_XW0M")
+LLMClient = genai.Client(api_key=os.getenv("GEMINI_TOKEN"))
 
 # Setup mongo
-mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
+mongoClient = MongoClient(os.getenv("MONGOSRV", ""))
 db = mongoClient["clarity"]
 collection_Tracker = db["tracker"]
 
 # Setup Redis
 redisClient = redis.Redis(
-    host="34.32.62.187", port=6379, db=0, password="yourpasd2ddsword"
+    host=os.getenv("REDIS_HOST"),
+    port=6379,
+    db=0,
+    password=os.getenv("REDIS_PASSWD", ""),
 )
 
 

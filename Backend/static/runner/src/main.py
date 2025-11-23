@@ -4,11 +4,11 @@ import json
 from pymongo import MongoClient, DESCENDING
 from typing import TypedDict, Optional, List
 import time
-
+import os
 from google import genai
 from google.genai import types
 
-LLMClient = genai.Client(api_key="AIzaSyAQxwUDf8mZcrsiGmyR97suGQn4el_XW0M")
+LLMClient = genai.Client(api_key=os.getenv("GEMINI_TOKEN", ""))
 
 
 class TimelineMetadata(TypedDict):
@@ -176,7 +176,7 @@ Input Data
 
 
 # Setup mongo
-mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
+mongoClient = MongoClient(os.getenv("MONGO_SRV", ""))
 db = mongoClient["clarity"]
 collection = db["tracker"]
 
@@ -184,9 +184,11 @@ collection = db["tracker"]
 # Setup rabbit
 connection = pika.BlockingConnection(
     pika.ConnectionParameters(
-        host="34.32.62.187",
+        host=os.getenv("RABBITMQ_HOST", ""),
         port=5672,
-        credentials=pika.credentials.PlainCredentials("user", "passwordadhahsd7"),
+        credentials=pika.credentials.PlainCredentials(
+            "user", os.getenv("RABBITMQ_PASSWD")
+        ),
     )
 )
 

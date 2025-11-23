@@ -6,7 +6,7 @@ import json
 import hmac
 import hashlib
 import pika
-
+import os
 import redis
 import logging
 from datetime import datetime, timezone, timedelta
@@ -49,12 +49,15 @@ class TimelineEntry(TypedDict):
 
 # Redis setup
 redisClient = redis.Redis(
-    host="34.32.62.187", port=6379, db=0, password="yourpasd2ddsword"
+    host=os.getenv("REDIS_HOST", ""),
+    port=6379,
+    db=0,
+    password=os.getenv("REDIS_PASSWD", ""),
 )
 
 
 # Mongo Setup
-mongoClient = MongoClient("mongodb://root:jsdusdbabsduroo4t@34.32.62.187:27017/")
+mongoClient = MongoClient(os.getenv("MONGO_SRV", ""))
 db = mongoClient["clarity"]
 collection = db["tracker"]
 
@@ -196,9 +199,11 @@ def github_webhooks():
     # Dump payload into rabitmq
     connection = pika.BlockingConnection(
         pika.ConnectionParameters(
-            host="34.32.62.187",
+            host=os.getenv("RABBITMQ_HOST", ""),
             port=5672,
-            credentials=pika.credentials.PlainCredentials("user", "passwordadhahsd7"),
+            credentials=pika.credentials.PlainCredentials(
+                "user", os.getenv("RABBITMQ_PASSWD", "")
+            ),
         )
     )
 
