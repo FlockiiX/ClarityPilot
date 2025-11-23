@@ -97,3 +97,10 @@ ClarityPilot is just taking off. Here’s where we want to go:
 
 Our long-term vision:
 Deep integration with mobile operating system that help us all prevent burnout and live a healthier life.
+
+## Team
+[Florian Berger](https://www.linkedin.com/in/florianber)
+
+[Nickola Hristov](https://www.linkedin.com/in/nmhristov)
+
+[Jannik Laps](https://github.com/playlogo)
