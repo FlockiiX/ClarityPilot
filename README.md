@@ -6,24 +6,27 @@ In today’s high-pressure academic and professional environments, especially fo
 We constantly juggle tasks across platforms like Jira, Slack, GitHub, Notion, and email.
 Meanwhile, our wearables collect tons of health data, but fail to turn it into meaningful, actionable guidance.
 
-**We asked ourselves:**\
+**We asked ourselves:**
 Why do our tools know so much about us but do so little for us?
 Where is the companion that understands our work patterns and cares for our cognitive well-being?
 
-That question became the spark for **ClarityPilot**: a proactive health companion that bridges the a yawning gap gap between hte (unhelpful) raw data and impactful, actionable recommendations
+That question became the spark for **ClarityPilot**: a proactive health companion that bridges the yawning gap between the (unhelpful) raw data and impactful, actionable recommendations
 
 ## What ClarityPilot does
 
 ClarityPilot lives right on your home screen.
 Its mission: help you conquer cognitive overload with actionable, personalized recommendations.
 
-**Key features**:
+- **Key features**:
 
-- **Unified Workload Intelligence**: Connect all your work platforms like Jira, Slack or GitHub. Using webhooks and integrations, ClarityPilot tracks how long you’ve been working, what you’re working on, and when your workload peaks.
+  - **Unified Workload Intelligence**: Connect all your work platforms like Jira, Slack, or GitHub. Using webhooks and integrations, ClarityPilot tracks how long you’ve been working, what you’re working on, and when your workload peaks.
 
 - **Cognitive State Estimation**:
+
   - Aggregate work context from productivity tools & Screen-time and focus information
-- **Proactive, AI-powered Interventions**: Not just another dashboard. ClarityPilot nudges you before burnout hits.
+
+- **Proactive, AI-powered Interventions**:
+  - Not just another dashboard. ClarityPilot nudges you before burnout hits.
 
 > "You’ve been debugging for 97 minutes straight—how about a 10-minute reset to Bierbräu Garching?"
 
@@ -50,7 +53,7 @@ Chosen for performance with focus on accessibility capabilities, and deep OS-lev
 
 ### AI-powered Recommendation Engine
 
-A lightweight, LLM based pipeline condenses individual sensor & productivity data into bigger milestones, which are used to generating context-aware recommendations using an agentic LLM based Pipeline:
+A lightweight, LLM based pipeline condenses individual sensor & productivity data into bigger milestones, which are used to generating context-aware recommendations using an agentic LLM based pipeline:
 
 ### Proactive Delivery System
 
@@ -62,15 +65,15 @@ Uses Android’s foreground services + widget updates + notifications to deliver
 - Balancing helpfulness vs. intrusiveness when crafting proactive recommendations
 - Widget refresh constraints on Android (rate limits, update cycles, battery impact)
 - Ensuring privacy and security while handling sensitive health and work data
-- **Time**
+- **Time** :)
 
 ## Accomplishments that we're proud of
 
 - We built a fully functional Kotlin-native Android app with a polished home-screen widget
 - Achieved live workload monitoring from multiple developer tools through webhooks
-- Developed an multi turn agentic LLM based recommendation engine that generates meaningful, context-aware suggestions
+- Developed a multi turn agentic LLM based recommendation engine that generates meaningful, context-aware suggestions
 - Delivered a clean, accessibility-focused UI that feels like a true digital companion
-- Built something students, developers, researchers—and we ourselves—would genuinely use every day
+- Built something students, developers, researchers, and even ourselves, would genuinely use every day
 
 ## What we learned
 
@@ -93,4 +96,4 @@ ClarityPilot is just taking off. Here’s where we want to go:
 - Enterprise dashboard for burnout-prevention analytics (with strong anonymity protections)
 
 Our long-term vision:
-Deep integration with mobile operating system that helps workers prevent burnout and live a healthier life.
+Deep integration with mobile operating system that help us all prevent burnout and live a healthier life.
