@@ -1,4 +1,7 @@
-## Inspiration 
+<img width="2752" height="849" alt="Gemini_Generated_Image_yk8iw2yk8iw2yk8i 1" src="https://github.com/user-attachments/assets/206e5290-54f4-40d3-ad6e-251958ce83ef" />
+
+## Inspiration
+
 In today’s high-pressure academic and professional environments, especially for students, researchers, and developers mental overload has become the norm. 
 We constantly juggle tasks across platforms like Jira, Slack, GitHub, Notion, and email. 
 Meanwhile, our wearables collect tons of health data, but fail to turn it into meaningful, actionable guidance.
@@ -7,10 +10,10 @@ Meanwhile, our wearables collect tons of health data, but fail to turn it into m
 Why do our tools know so much about us but do so little for us?
 Where is the companion that understands our work patterns and cares for our cognitive well-being?
 
-That question became the spark for **ClarityPilot** - a proactive health and productivity companion that bridges the critical gap between raw data and real support.
+That question became the spark for **ClarityPilot**: a proactive health companion that bridges the a yawning gap gap between hte (unhelpful) raw data and impactful, actionable recommendations
 
-## What it does 
-ClarityPilot is a health companion that lives right on your home screen. 
+## What ClarityPilot does 
+ClarityPilot lives right on your home screen. 
 Its mission: help you conquer cognitive overload with actionable, personalized recommendations.
 
 **Key features**:
