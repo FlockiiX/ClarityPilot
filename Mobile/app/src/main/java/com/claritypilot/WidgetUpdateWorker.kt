@@ -29,7 +29,7 @@ class WidgetUpdateWorker(
         private const val UNIQUE_WORK_NAME = "widget_update_work"
 
         fun enqueue(context: Context) {
-            val request = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(15, TimeUnit.SECONDS)
+            val request = PeriodicWorkRequestBuilder<WidgetUpdateWorker>(15, TimeUnit.MINUTES)
                 .build()
 
             WorkManager.getInstance(context).enqueueUniquePeriodicWork(
