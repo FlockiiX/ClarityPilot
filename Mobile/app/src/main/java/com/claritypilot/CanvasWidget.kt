@@ -128,9 +128,9 @@ class CanvasWidget : GlanceAppWidget() {
         return WidgetResponse(
             elements = listOf(
                 WidgetElement.Spacer(),
-                WidgetElement.Text(content = "ClarityPilot", fontStyle = "heading"),
+                WidgetElement.Text(content = "Hey there", fontStyle = "heading"),
                 WidgetElement.Spacer(),
-                WidgetElement.Text(content = "Ready for your next goal?", fontStyle = "normal")
+                WidgetElement.Text(content = "Ready for your next recommendation?", fontStyle = "normal")
             )
         )
     }

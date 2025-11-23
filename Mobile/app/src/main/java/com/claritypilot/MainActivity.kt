@@ -11,6 +11,7 @@ import android.widget.NumberPicker
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -20,8 +21,10 @@ import androidx.compose.foundation.interaction.PressInteraction
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -29,7 +32,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.pager.HorizontalPager
 import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.selection.selectable
@@ -39,7 +41,6 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
-import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.DateRange
 import androidx.compose.material.icons.outlined.Person
@@ -50,8 +51,8 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ElevatedCard
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.ModalBottomSheet
@@ -59,6 +60,7 @@ import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Surface
 import androidx.compose.material3.Tab
 import androidx.compose.material3.TabRow
 import androidx.compose.material3.Text
@@ -72,14 +74,15 @@ import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.produceState
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -99,6 +102,7 @@ import androidx.core.content.ContextCompat
 import coil.compose.AsyncImage
 import coil.request.ImageRequest
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -108,29 +112,13 @@ import java.net.URL
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.layout.IntrinsicSize
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.width
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.graphics.PathEffect
-import androidx.compose.ui.unit.Dp
-import androidx.compose.material3.ElevatedCard
-import androidx.compose.material3.Surface
-import androidx.compose.ui.graphics.RectangleShape
-import kotlinx.coroutines.delay
 
 
 class MainActivity : ComponentActivity() {
-
-    // Dein Permission Launcher (unverändert übernommen)
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
     ) { isGranted: Boolean ->
-        // Hier könntest du auf die Entscheidung reagieren (optional)
+
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -141,21 +129,15 @@ class MainActivity : ComponentActivity() {
 
         val myCustomGreen = Color(0xFF0CB446)
 
-        // 2. Erstelle das Farbschema (wir überschreiben hier die wichtigsten Farben)
-        // Wenn du 'secondary' und 'tertiary' nicht setzt, bleiben sie evtl. lila/anders.
-        // Um sicherzugehen, dass ALLES grünlich wirkt, setzen wir die Hauptfarben hier gleich.
         val myAppColorScheme = lightColorScheme(
             primary = myCustomGreen,
-            onPrimary = Color.White, // Text auf dem grünen Button
-            secondary = myCustomGreen, // Sekundäre Elemente auch grün
+            onPrimary = Color.White,
+            secondary = myCustomGreen,
             tertiary = myCustomGreen,
 
-            // Optional: Damit Hintergründe (wie bei "Connected") einen passenden hellen Ton haben:
-            primaryContainer = Color(0xFFDDF5E4), // Ein sehr helles Grün passend zu deinem Ton
-            onPrimaryContainer = Color(0xFF00210B) // Dunkler Text auf hellem Container
+            primaryContainer = Color(0xFFDDF5E4),
+            onPrimaryContainer = Color(0xFF00210B)
         )
-        // Hier startet die Compose UI mit den zwei Reitern
-        // (Ersetzt setContentView(R.layout.widget_initial_layout))
         setContent {
             MaterialTheme(
               //  colorScheme = myAppColorScheme
@@ -178,52 +160,11 @@ suspend fun loadJsonFromUrl(urlString: String): String {
             inputStream.bufferedReader().use { it.readText() }
         } catch (e: Exception) {
             e.printStackTrace()
-            "{}" // Leeres JSON bei Fehler zurückgeben
+            "{}"
         }
     }
 }
 
-
-@Composable
-fun ActivityRow(item: ActivityItem) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 12.dp, horizontal = 16.dp), // Etwas Abstand
-        verticalAlignment = Alignment.CenterVertically,
-        horizontalArrangement = Arrangement.spacedBy(16.dp) // Abstand zwischen Icon und Text
-    ) {
-        // --- Icon ---
-        // Wir verwenden Coil, um das Bild von einer URL zu laden
-        AsyncImage(
-            model = ImageRequest.Builder(LocalContext.current)
-                .data(item.icon) // Fallback-Icon (GitHub)
-                .crossfade(true)
-                .build(),
-            contentDescription = item.type,
-            contentScale = ContentScale.Crop,
-            modifier = Modifier
-                .size(40.dp)
-
-        )
-
-        // --- Beschreibung ---
-        Text(
-            text = item.label,
-            style = MaterialTheme.typography.bodyLarge,
-            modifier = Modifier.weight(1f) // Nimmt den verfügbaren Platz ein
-        )
-
-        // --- Dauer ---
-        Text(
-            text = item.duration,
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant // Etwas dezenter
-        )
-    }
-}
-
-// Datenklasse für die Tab-Konfiguration
 data class TabItem(
     val title: String,
     val icon: ImageVector,
@@ -240,9 +181,7 @@ fun MainTabScreen() {
     val pagerState = rememberPagerState(pageCount = { tabs.size })
     val scope = rememberCoroutineScope()
 
-    // Passen Sie den Scaffold an:
     Scaffold(
-        // Die TabRow wird jetzt hier in der bottomBar platziert
         bottomBar = {
             TabRow(selectedTabIndex = pagerState.currentPage) {
                 tabs.forEachIndexed { index, tab ->
@@ -259,14 +198,8 @@ fun MainTabScreen() {
                 }
             }
         }
-        // Der topBar-Slot bleibt leer
     ) { innerPadding ->
-        // Der wischbare Bereich (HorizontalPager)
-        // WICHTIG: Das innerPadding vom Scaffold wird jetzt automatisch den
-        // Platz für die untere Leiste freihalten.
         HorizontalPager(
-            // Hinweis: Der Column-Wrapper ist hier nicht unbedingt nötig.
-            // Das padding kann direkt am Pager angewendet werden.
             state = pagerState
         ) { pageIndex ->
             tabs[pageIndex].screen()
@@ -274,21 +207,12 @@ fun MainTabScreen() {
     }
 }
 
-// --- Beispiel Inhalt für den "View" Screen ---
-
-// DURCH DIESE NEUE VERSION:
 @OptIn(ExperimentalFoundationApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun ViewScreen() {
-    val context = LocalContext.current
-
-    // State für die Daten
     var timelineData by remember { mutableStateOf<TimelineData>(emptyMap()) }
-
-    // Polling Logik: Alle 10 Sekunden checken
     LaunchedEffect(Unit) {
         while (true) {
-            // 1. Daten im Hintergrund laden
             val jsonString = loadJsonFromUrl("https://clarity-pilot.com/user/1/timeline/android")
             val json = Json { ignoreUnknownKeys = true }
             val newData = if (jsonString.isNotBlank()) {
@@ -301,19 +225,14 @@ fun ViewScreen() {
                 emptyMap()
             }
 
-            // 2. "Silent Update": Nur zuweisen, wenn sich wirklich was geändert hat.
-            // Kotlin Maps vergleichen Inhalte automatisch korrekt (equals).
-            // Dadurch flackert nichts und der Scroll-Status bleibt erhalten.
             if (newData != timelineData) {
                 timelineData = newData
             }
 
-            // 3. 10 Sekunden warten
             delay(10_000)
         }
     }
 
-    // Design Konstanten
     val timelineColor = MaterialTheme.colorScheme.outlineVariant
     val dotColor = MaterialTheme.colorScheme.primary
 
@@ -333,8 +252,6 @@ fun ViewScreen() {
     ) {
         if (timelineData.isEmpty()) {
             item {
-                // Nur ganz am Anfang (beim allerersten Start) zeigen wir "Loading"
-                // Später bei Updates sieht man das hier nicht mehr.
                 Box(modifier = Modifier.fillParentMaxSize(), contentAlignment = Alignment.Center) {
                     Text("Loading...", color = Color.Gray)
                 }
@@ -347,7 +264,6 @@ fun ViewScreen() {
 
                 items(activities.size) { index ->
                     val activity = activities[index]
-                    // Prüfen ob es das letzte Item der GRUPPE (des Tages) ist
                     val isLastItemOfDay = index == activities.lastIndex
 
                     ModernTimelineItem(
@@ -362,8 +278,6 @@ fun ViewScreen() {
         }
     }   }
 }
-
-// --- KOMPONENTEN ---
 
 @Composable
 fun TimelineDateHeader(day: String) {
@@ -402,22 +316,17 @@ fun ModernTimelineItem(
             .fillMaxWidth()
             .height(IntrinsicSize.Min)
     ) {
-        // --- SPALTE 1: Die Timeline (Grafik) ---
         Box(
             modifier = Modifier
                 .width(50.dp)
                 .fillMaxHeight(),
             contentAlignment = Alignment.TopCenter
         ) {
-            // A. Die Linie
             Canvas(
                 modifier = Modifier
                     .fillMaxHeight()
                     .width(2.dp)
             ) {
-                // LOGIK-ÄNDERUNG HIER:
-                // Start: Immer oben (0f)
-                // Ende: Wenn es das letzte Item ist -> Mitte (center.y). Sonst -> Ganz unten (size.height).
                 val endY = if (isLast) center.y else size.height
 
                 drawLine(
@@ -428,15 +337,12 @@ fun ModernTimelineItem(
                 )
             }
 
-            // B. Der Punkt (Knoten)
             Surface(
                 shape = RectangleShape,
                 color = MaterialTheme.colorScheme.surface,
-               // border = androidx.compose.foundation.BorderStroke(2.dp, dotColor),
                 modifier = Modifier
                     .padding(top = 18.dp)
                     .size(32.dp),
-                //shadowElevation = 2.dp
             ) {
                 Box(contentAlignment = Alignment.Center) {
                     AsyncImage(
@@ -447,13 +353,11 @@ fun ModernTimelineItem(
                         contentDescription = null,
                         modifier = Modifier
                             .size(item.iconSize.dp),
-                        //contentScale = ContentScale.Fit
                     )
                 }
             }
         }
 
-        // --- SPALTE 2: Der Inhalt (Karte) ---
         Box(
             modifier = Modifier
                 .weight(1f)
@@ -502,23 +406,21 @@ fun ModernTimelineItem(
         }
     }
 }
-// DIESE FUNKTION HINZUFÜGEN:
 fun loadJsonFromAssets(context: Context, fileName: String): String {
     return try {
         val inputStream: InputStream = context.assets.open(fileName)
         inputStream.bufferedReader().use { it.readText() }
     } catch (e: Exception) {
         e.printStackTrace()
-        "{}" // Leeres JSON bei Fehler zurückgeben
+        "{}"
     }
 }
 
-// --- Beispiel Inhalt für den "Settings" Screen ---
 data class AccountOption(
     val id: String,
     val name: String,
-    val icon: Int, // In der Praxis hier eher 'resId: Int' verwenden
-    val color: Color, // Markenfarbe für den visuellen Touch
+    val icon: Int,
+    val color: Color,
     val initialConnected: Boolean
 )
 
@@ -531,9 +433,6 @@ fun SettingsScreen() {
         context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)
     }
 
-    // ... (STATE LOGIK BLEIBT GLEICH WIE VORHER) ...
-    // Kopiere hier deine State-Variablen (accounts, name, gender, birthDateMillis, etc.) rein
-    // Ich kürze das hier ab, da sich an der Logik nichts geändert hat.
     val accounts = remember {
         mutableStateListOf(
             AccountOption("github", "GitHub", R.drawable.github, Color(0xFF333333), prefs.getBoolean("account_github", true)),
@@ -571,7 +470,6 @@ fun SettingsScreen() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // --- LINKED ACCOUNTS ---
             item {
                 SectionHeader(title = "Linked Accounts")
                 Spacer(modifier = Modifier.height(8.dp))
@@ -590,7 +488,6 @@ fun SettingsScreen() {
                 }
             }
 
-            // --- MEDICAL PROFILE ---
             item {
                 SectionHeader(title = "Medical Profile")
                 Spacer(modifier = Modifier.height(16.dp))
@@ -621,7 +518,6 @@ fun SettingsScreen() {
                             }
                         )
 
-                        // Hier Accessibility verbessert: onClickLabel
                         ClickableTextField(
                             value = birthDateString,
                             label = "Date of Birth",
@@ -655,11 +551,6 @@ fun SettingsScreen() {
         }
     }
 
-    // ... (HIER FOLGEN DIE GLEICHEN DIALOGE/SHEETS WIE VORHER) ...
-    // ... showDatePicker, showHeightPicker, showWeightPicker Code hier einfügen ...
-    // (Der Dialog-Code war bereits gut, da native Komponenten meist accessible sind)
-
-    // Kurzer Platzhalter für die Dialoge der Vollständigkeit halber, damit der Code kompiliert:
     if (showDatePicker) {
         val datePickerState = rememberDatePickerState(initialSelectedDateMillis = birthDateMillis ?: System.currentTimeMillis())
         DatePickerDialog(
@@ -684,7 +575,6 @@ fun SettingsScreen() {
 
     if (showWeightPicker) {
         ModalBottomSheet(onDismissRequest = { showWeightPicker = false }) {
-            // ... Weight Picker Code wie vorher ...
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth().padding(bottom = 40.dp)) {
                 Text("Select Weight", style = MaterialTheme.typography.titleLarge, fontWeight = FontWeight.Bold, modifier = Modifier.padding(bottom = 16.dp))
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.Center) {
@@ -704,20 +594,17 @@ fun SettingsScreen() {
         }
     }
 }
-// --- HELPER COMPONENTS ---
 
-// Ein Textfeld, das aussieht wie Input, aber auf Klick reagiert (read-only)
 @Composable
 fun ClickableTextField(
     value: String,
     label: String,
     onClick: () -> Unit,
-    onClickLabel: String? = null, // Neu: Was passiert beim Klick?
+    onClickLabel: String? = null,
     icon: ImageVector? = null,
     suffix: String? = null,
     placeholder: String? = null
 ) {
-    // InteractionSource für Ripple-Effekt behalten wir
     val interactionSource = remember { MutableInteractionSource() }
 
     LaunchedEffect(interactionSource) {
@@ -743,11 +630,9 @@ fun ClickableTextField(
         } else null,
         modifier = Modifier
             .fillMaxWidth()
-            // WICHTIG: Semantics überschreiben
             .semantics {
-                role = Role.Button // Screenreader sagt "Button Date of Birth"
+                role = Role.Button
                 if (onClickLabel != null) {
-                    // Screenreader sagt "Double tap to Change date of birth"
                     this.onClick(label = onClickLabel) {
                         onClick()
                         true
@@ -765,7 +650,6 @@ fun ClickableTextField(
     )
 }
 
-// Das native Scroll-Rad (Der geheime Trick für gute UX)
 @Composable
 fun NativeWheelPicker(
     value: Int,
@@ -776,8 +660,6 @@ fun NativeWheelPicker(
     AndroidView(
         modifier = Modifier.width(64.dp),
         factory = { context ->
-            // TRICK: Wir zwingen den Picker in ein "Light"-Theme.
-            // Das sorgt dafür, dass die Schrift schwarz/dunkel und gut lesbar ist.
             val wrappedContext =
                 ContextThemeWrapper(context, android.R.style.Theme_DeviceDefault_Light)
 
@@ -799,7 +681,6 @@ fun NativeWheelPicker(
     )
 }
 
-// --- Helper Composables für UI Konsistenz ---
 @Composable
 fun SectionHeader(title: String) {
     Text(
@@ -807,7 +688,7 @@ fun SectionHeader(title: String) {
         style = MaterialTheme.typography.titleMedium,
         color = MaterialTheme.colorScheme.primary,
         fontWeight = FontWeight.Bold,
-        modifier = Modifier.semantics { heading() } // WICHTIG: Screenreader springen hierhin
+        modifier = Modifier.semantics { heading() }
     )
 }
 
@@ -861,7 +742,7 @@ fun GenderSelection(
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .selectableGroup(), // Gruppiert die Elemente
+                .selectableGroup(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             val genders = listOf("Male", "Female", "Other")
@@ -878,11 +759,10 @@ fun GenderSelection(
                         .clip(RoundedCornerShape(100))
                         .border(1.dp, borderColor, RoundedCornerShape(100))
                         .background(containerColor)
-                        // WICHTIG: selectable statt clickable nutzen!
                         .selectable(
                             selected = isSelected,
                             onClick = { onGenderSelected(gender) },
-                            role = Role.RadioButton // Screenreader sagt "Radio Button Male, Selected"
+                            role = Role.RadioButton
                         ),
                     contentAlignment = Alignment.Center
                 ) {
@@ -926,7 +806,7 @@ fun AccountItem(
                 ) {
                     Image(
                         painter = painterResource(id = account.icon),
-                        contentDescription = null, // Dekorativ, da der Name daneben steht
+                        contentDescription = null,
                         modifier = Modifier.size(28.dp)
                     )
                 }
@@ -943,7 +823,6 @@ fun AccountItem(
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         val statusColor = if (account.initialConnected) Color(0xFF4CAF50) else Color.Gray
                         val statusText = if (account.initialConnected) "Connected" else "Disconnected"
-                        // Status Punkt für Screenreader ignorieren, Text reicht
                         Box(
                             modifier = Modifier
                                 .size(8.dp)
@@ -960,9 +839,8 @@ fun AccountItem(
                 }
             }
 
-            // Button Beschriftung für Accessibility verbessern
             val actionVerb = if (account.initialConnected) "Disconnect" else "Login to"
-            val a11yDescription = "$actionVerb ${account.name}" // z.B. "Disconnect GitHub"
+            val a11yDescription = "$actionVerb ${account.name}"
 
             if (account.initialConnected) {
                 OutlinedButton(

@@ -1,8 +1,7 @@
 package com.claritypilot
 
-import kotlinx.serialization.Serializable // Wichtig: Import hinzufügen
+import kotlinx.serialization.Serializable
 
-// Beschreibt einen einzelnen Aktivitäts-Eintrag
 @Serializable
 data class ActivityItem(
     val type: String,
@@ -12,6 +11,4 @@ data class ActivityItem(
     val iconSize: Int= 32,
 )
 
-// Wrapper für die komplette Timeline, die aus den Tages-Einträgen besteht.
-// Wir verwenden eine Map, um dynamische Schlüssel wie "Today", "Yesterday" zu verarbeiten.
 typealias TimelineData = Map<String, List<ActivityItem>>
